@@ -60,6 +60,7 @@ class GallerySerializer(serializers.ModelSerializer):
                   "get_image",)
 
 
+
 class GlawaSerializer(serializers.ModelSerializer):
     galleries = GallerySerializer(many=True, read_only=True)
 
@@ -71,14 +72,21 @@ class GlawaSerializer(serializers.ModelSerializer):
                   "title",
                   "time_prod",
                   "data_g",
-                  "galleries",
-                  "manga_id",)
+                  "galleries",)
 
+class GlawaSimpleSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Glawa
+        fields = ("id",
+                  "num",
+                  "title",
+                  "get_absolute_url",
+                  "data_g")
 
 class MangaSerializer(serializers.ModelSerializer):
     author = AuthorSerializer(many=True, read_only=True)
     counts = CountrySerializer(many=True, read_only=True)
-    glaws = GlawaSerializer(many=True, read_only=True)
+    glaws = GlawaSimpleSerializer(many=True, read_only=True)
     tags = TagsSerializer(many=True, read_only=True)
     genre = GenreSerializer(many=True, read_only=True)
     class Meta:
@@ -97,3 +105,37 @@ class MangaSerializer(serializers.ModelSerializer):
                   'get_avatar',
                   'get_absolute_url',
                   )
+
+
+
+
+
+
+class MangalastSerializer(serializers.ModelSerializer):
+    thumbnail = serializers.SerializerMethodField()
+    url = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Manga
+        fields = ['name_manga', 'thumbnail', 'url']
+
+    def get_thumbnail(self, obj):
+        return obj.get_thumbnail()
+
+    def get_url(self, obj):
+        return obj.get_absolute_url()
+
+    def to_representation(self, instance):
+        representation = super().to_representation(instance)
+        representation['thumbnail'] = instance.get_thumbnail()
+        representation['url'] = instance.get_absolute_url()
+        return representation
+
+
+
+class GlawalastSerializer(serializers.ModelSerializer):
+    manga = MangalastSerializer()
+
+    class Meta:
+        model = Glawa
+        fields = ['manga', 'num', 'data_g', 'title']

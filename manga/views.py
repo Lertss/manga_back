@@ -14,7 +14,7 @@ class MangaListHome(APIView):
     def get(self, request, format=None):
         manga = Manga.objects.all()
         serializer_all = MangaSerializer(manga, many=True)
-        last_manga = Manga.objects.order_by('?')[:5]
+        last_manga = Manga.objects.order_by('-time_prod')[:10]
         serializer_lastmanga = MangaSerializer(last_manga, many=True)
         last_glawa = Glawa.objects.all()
         #
@@ -24,8 +24,19 @@ class MangaListHome(APIView):
         return Response(serializer)
 
 
+class GlawaListView(APIView):
+    def get(self, request):
+        glawas = Glawa.objects.all()
+        serializer = GlawalastSerializer(glawas, many=True, context={'request': request})
+        return Response(serializer.data)
+
+
+
 class allManga(APIView):
     def get(self, request, ):
+        glawas = Glawa.objects.all()
+        serializere = GlawaSerializer(glawas, many=True)
+        print(serializere.data)
         manga = Manga.objects.all()
         serializer = MangaSerializer(manga, many=True)
         return Response(serializer.data)
