@@ -138,4 +138,4 @@ class GlawalastSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Glawa
-        fields = ['manga', 'num', 'data_g', 'title']
+        fields = ['manga', 'num', 'data_g', 'title', 'slug']
