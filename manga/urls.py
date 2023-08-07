@@ -9,4 +9,5 @@ urlpatterns = [
     path('<slug:manga_slug>/<slug:glawa_slug>/', views.ShowGlawa.as_view()),
     path('<slug:manga_slug>/', views.ShowManga.as_view()),
 
+
 ]

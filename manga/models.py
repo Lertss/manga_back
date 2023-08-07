@@ -1,6 +1,8 @@
 from __future__ import unicode_literals
 
 from datetime import datetime
+
+from django.core.validators import RegexValidator
 from django.utils import timezone
 from django.db import models
 from django.contrib.auth.models import PermissionsMixin
@@ -10,7 +12,7 @@ from django.utils.translation import gettext_lazy as _
 from io import BytesIO
 from PIL import Image
 from django.core.files import File
-
+from django.utils.text import slugify
 
 class Author(models.Model):
     id = models.AutoField(primary_key=True)
@@ -59,7 +61,6 @@ class Categorys(models.Model):
     )
     id = models.AutoField(primary_key=True)
     title = models.CharField(max_length=50, choices=CHOICES, unique=True)
-    slug = models.SlugField(null=False, unique=True)
 
     def get_absolute_url(self):
         return f'/{self.slug}/'
@@ -73,11 +74,13 @@ class Manga(models.Model):
     id = models.AutoField(primary_key=True)
     name_manga = models.CharField(_('name_manga'), max_length=100, blank=False)
     name_original = models.CharField(_('name_original'), max_length=100, blank=True)
+    english_only_field = models.CharField(max_length=255,unique=True,blank=True, validators=[RegexValidator(r'^[a-zA-Z0-9]*$', 'Only alphanumeric characters are allowed.')])
     author = models.ManyToManyField(Author, related_name='actors')
     time_prod = models.DateTimeField(default=timezone.now)
     counts = models.ManyToManyField(Country, related_name='country')
     tags = models.ManyToManyField(Tags, related_name='tags')
     genre = models.ManyToManyField(Genre, related_name='genre')
+    decency = models.BooleanField(default=False, help_text="For adults? yes/no")
     review = models.TextField(max_length=1000)
     avatar = models.ImageField(upload_to='static/images/avatars/',
                                default='default/none_avatar.png/',
@@ -117,6 +120,13 @@ class Manga(models.Model):
 
         thumbnail = File(thumb_io, name=avatar.name)
         return thumbnail
+
+    def save(self, *args, **kwargs):
+        if not self.id:
+            super().save(*args, **kwargs)
+
+        self.slug = slugify(f"{self.english_only_field}-{self.id}")
+        super().save(*args, **kwargs)
 
 
 class Glawa(models.Model):
