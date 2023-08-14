@@ -11,12 +11,12 @@ admin.site.register(models.Manga)
 
 
 class GalleryAdm(admin.TabularInline):
-    fk_name = 'glawa'
+    fk_name = 'chapter'
     model = models.Gallery
 
 
-@admin.register(models.Glawa)
-class GlawaAdmin(admin.ModelAdmin):
+@admin.register(models.Chapter)
+class ChapterAdmin(admin.ModelAdmin):
     inlines = [GalleryAdm, ]
 
 
@@ -25,6 +25,6 @@ class MangaAdm(admin.TabularInline):
     model = models.Manga
 
 
-@admin.register(models.Categorys)
+@admin.register(models.Category)
 class CategoryAdmin(admin.ModelAdmin):
     inlines = [MangaAdm, ]

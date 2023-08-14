@@ -1,36 +1,76 @@
 from dj_rest_auth.registration.serializers import RegisterSerializer
 
+from common.serializers import CommentSerializer
+from manga.serializers import MangalastSerializer
 from users.models import GENDER_SELECTION, CustomUser, MangaList
+from rest_framework import serializers
+
+
 from rest_framework import serializers
 
 
 class CustomRegisterSerializer(RegisterSerializer):
     gender = serializers.ChoiceField(choices=GENDER_SELECTION, required=True)
-    birthdate = serializers.DateField(required=True)
-    avatar = serializers.ImageField(default='default/none_avatar_user.png/', allow_null=True, required=False)
+    adult = serializers.BooleanField(required=True)
+    avatar = serializers.ImageField(default='static/images/avatars/user/none_avatar_user.jpg', allow_null=True, required=False)
 
-    def save(self, request):
-        user = super().save(request)
+    def custom_signup(self, request, user):
         user.gender = self.validated_data.get('gender')
-        user.birthdate = self.validated_data.get('birthdate')
         user.avatar = self.validated_data.get('avatar')
-        user.save()
-        return user
+        user.save(update_fields=['gender', 'avatar'])
+
 
 class MangaListSerializer(serializers.ModelSerializer):
+    manga = MangalastSerializer()
+
     class Meta:
         model = MangaList
-        fields = '__all__'  # Або перерахуйте поля, які ви хочете включити в серіалайзер
+        fields = (
+            'id',
+            'name',
+            'user',
+            'manga',
+        )
+
 
 class CustomUserDetailsSerializer(serializers.ModelSerializer):
-    mangalist = MangaListSerializer(many=True, read_only=True)
+    list_manga = MangaListSerializer(many=True, read_only=True)
+    comments = CommentSerializer(many=True, read_only=True)
     class Meta:
         model = CustomUser
         fields = (
             'pk',
+            'username',
             'email',
-            'birthdate',
+            'adult',
             'gender',
-            'mangalist'
+            'get_avatar',
+            'list_manga',
+            'comments'
         )
 
+
+
+
+
+
+
+class GenderUpdateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CustomUser
+        fields = ('gender',)
+
+class AdultUpdateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CustomUser
+        fields = ('adult',)
+
+class AvatarUpdateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CustomUser
+        fields = ('avatar',)
+
+class EmailUpdateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CustomUser
+        fields = ('email',)

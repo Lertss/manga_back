@@ -16,41 +16,18 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 
-from dj_rest_auth.registration.views import VerifyEmailView, ConfirmEmailView
-from dj_rest_auth.views import PasswordResetConfirmView
 from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import path, include
-from django.views.generic import RedirectView
 
+import common.urls
 import manga.urls
-from users import views
-from users.views import CustomRegisterView, CustomUserDetailsView
-# urls.py
-
-from django.urls import path
-
-
+import users.urls
 
 urlpatterns = [
-
-
-                  path('dj-rest-auth/user/', CustomUserDetailsView.as_view(), name='rest_user_details'),
-                  path('admin/', admin.site.urls),
-                  path('api/v1/', include(manga.urls)),
-                  path('dj-rest-auth/registration/account-confirm-email/<str:key>/', ConfirmEmailView.as_view()),
-                  # Needs to be defined before the registration path
-                  path('dj-rest-auth/registration/', CustomRegisterView.as_view(), name='account_signup'),
-                  path('dj-rest-auth/account-confirm-email/', VerifyEmailView.as_view(),
-                       name='account_email_verification_sent'),
-                  path('password/reset/confirm/<uidb64>/<token>/', PasswordResetConfirmView.as_view(),
-                       name='password_reset_confirm'),
-
-                  path('dj-rest-auth/registration/', include('dj_rest_auth.registration.urls')),
-                  path('dj-rest-auth/', include('dj_rest_auth.urls')),
-
-
+                path('admin/', admin.site.urls),
+                path('api/v1/', include(manga.urls)),
+                path('auth/', include(users.urls)),
+                path('commn/', include(common.urls)),
               ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
-
-
