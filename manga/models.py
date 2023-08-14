@@ -14,6 +14,9 @@ from PIL import Image
 from django.core.files import File
 from django.utils.text import slugify
 
+from django.db import models
+
+
 class Author(models.Model):
     id = models.AutoField(primary_key=True)
     first_name = models.CharField(_('First name'), max_length=50)
@@ -86,6 +89,8 @@ class Manga(models.Model):
                                default='default/none_avatar.png/',
                                blank=True)
     thumbnail = models.ImageField(upload_to='media/products/miniava', blank=True, null=True)
+    comments = models.ManyToManyField('common.Comment', related_name='manga_comments', blank=True)
+
     slug = models.SlugField(null=False, unique=True)
 
     def __str__(self):
@@ -111,6 +116,14 @@ class Manga(models.Model):
             else:
                 return ''
 
+    def add_comment(self, user, text):
+        from common.models import Comment
+        Comment.add_comment(user, text, self, self)
+
+    def remove_comment(self, comment_id):
+        from common.models import Comment
+        Comment.remove_comment(comment_id, self)
+
     def make_thumbnail(self, avatar):
         img = Image.open(avatar)
         img = img.resize((120, 170))
@@ -135,6 +148,8 @@ class Glawa(models.Model):
     num = models.FloatField(blank=False)
     title = models.CharField(max_length=50, null=True, blank=True)
     time_prod = models.DateTimeField(default=timezone.now)
+    comments = models.ManyToManyField('common.Comment', related_name='glawa_comments', blank=True)
+
     slug = models.SlugField(null=False, unique=True)
 
     class Meta:
@@ -145,6 +160,14 @@ class Glawa(models.Model):
 
     def data_g(self):
         return self.time_prod.strftime("%m/%d/%Y")
+
+    def add_comment(self, user, text):
+        from common.models import Comment
+        Comment.add_comment(user, text, self, self)
+
+    def remove_comment(self, comment_id):
+        from common.models import Comment
+        Comment.remove_comment(comment_id, self)
 
     def __str__(self):
         return self.title

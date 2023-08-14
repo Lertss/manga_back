@@ -9,6 +9,7 @@ https://docs.djangoproject.com/en/4.2/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.2/ref/settings/
 """
+import datetime
 import os
 from pathlib import Path
 
@@ -49,14 +50,15 @@ INSTALLED_APPS = [
 
     'manga',
     'users',
+    'common'
 ]
 
 CORS_ALLOW_ALL_ORIGINS = True  # If this is used then `CORS_ALLOWED_ORIGINS` will not have any effect
 CORS_ALLOW_CREDENTIALS = True
 # If this is used, then not need to use `CORS_ALLOW_ALL_ORIGINS = True`
 CORS_ALLOWED_ORIGIN_REGEXES = [
-    'http://localhost:8081/',
-    'http://10.9.109.13:8081/',
+    'http://localhost:8080/',
+    'http://10.9.109.13:8080/',
 
 ]
 
@@ -146,13 +148,16 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 AUTH_USER_MODEL = 'users.CustomUser'
 
-REST_AUTH = {
-    'SESSION_LOGIN': False,  # Вимкнути сесійний вхід
-    'USE_JWT': True,
-    'JWT_AUTH_COOKIE': 'auth',
-    'JWT_AUTH_HTTPONLY': True,
+# settings.py
 
+REST_AUTH = {
+    'SESSION_LOGIN': False,
+    'USE_JWT': True,
+    'JWT_AUTH_COOKIE': 'auth',  # JWT токен буде зберігатися в цьому кукі
+    'JWT_AUTH_REFRESH_COOKIE': 'refreshToken',  # REFRESH токен буде зберігатися в цьому кукі
+    'JWT_AUTH_HTTPONLY': False,
     'PASSWORD_RESET_USE_SITES_DOMAIN': True,
+    'JWT_AUTH_RETURN_EXPIRATION': True
 }
 
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
@@ -164,9 +169,16 @@ ACCOUNT_CONFIRM_EMAIL_ON_GET = True
 LOGIN_URL = 'http://127.0.0.1:8000/dj-rest-auth/login'
 OLD_PASSWORD_FIELD_ENABLED = True
 LOGOUT_ON_PASSWORD_CHANGE = False
+
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
-        'dj_rest_auth.jwt_auth.JWTCookieAuthentication',  # Лише JWT аутентифікація
+        'dj_rest_auth.jwt_auth.JWTCookieAuthentication',
     ),
-    'DEFAULT_SCHEMA_CLASS': 'rest_framework.schemas.coreapi.AutoSchema'
+    'DEFAULT_SCHEMA_CLASS': 'rest_framework.schemas.coreapi.AutoSchema',
+}
+
+SIMPLE_JWT = {
+    "ACCESS_TOKEN_LIFETIME": datetime.timedelta(hours=24),
+    "REFRESH_TOKEN_LIFETIME": datetime.timedelta(days=30),
+    "ROTATE_REFRESH_TOKENS": True,
 }

@@ -1,5 +1,6 @@
 from dj_rest_auth.registration.serializers import RegisterSerializer
 
+from manga.serializers import MangalastSerializer
 from users.models import GENDER_SELECTION, CustomUser, MangaList
 from rest_framework import serializers
 
@@ -18,19 +19,28 @@ class CustomRegisterSerializer(RegisterSerializer):
         return user
 
 class MangaListSerializer(serializers.ModelSerializer):
+    manga = MangalastSerializer()
+
     class Meta:
         model = MangaList
-        fields = '__all__'  # Або перерахуйте поля, які ви хочете включити в серіалайзер
+        fields = (
+            'id',
+            'name',
+            'user',
+            'manga',
+        )
 
 class CustomUserDetailsSerializer(serializers.ModelSerializer):
-    mangalist = MangaListSerializer(many=True, read_only=True)
+    list_manga = MangaListSerializer(many=True, read_only=True)
     class Meta:
         model = CustomUser
         fields = (
             'pk',
+            'username',
             'email',
             'birthdate',
             'gender',
-            'mangalist'
+            'get_avatar',
+            'list_manga',
         )
 

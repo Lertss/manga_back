@@ -4,6 +4,7 @@ from datetime import date
 from django.db import models
 from django.contrib.auth.models import AbstractUser
 
+
 from manga.models import Manga
 
 GENDER_SELECTION = [
@@ -27,10 +28,19 @@ from django.db import IntegrityError
 class CustomUser(AbstractUser):
     gender = models.CharField(max_length=15, choices=GENDER_SELECTION)
     birthdate = models.DateField(null=True, blank=True)
-    avatar = models.ImageField(upload_to='static/images/avatars/user/',default='default/none_avatar_user.png/',blank=True)
+    avatar = models.ImageField(upload_to='static/images/avatars/user/', blank=True)
     slug = models.SlugField(null=False, unique=True)
     first_name = None
     last_name = None
+    comments = models.ManyToManyField('common.Comment', related_name='user_comments', blank=True)
+
+    def add_comment(self, text):
+        from common.models import Comment
+        Comment.add_comment(self, text, self)
+
+    def remove_comment(self, comment_id):
+        from common.models import Comment
+        Comment.remove_comment(comment_id, self)
 
     def get_absolute_url(self):
         return f'/{self.slug}/'
@@ -41,6 +51,8 @@ class CustomUser(AbstractUser):
         return ''
 
     def save(self, *args, **kwargs):
+        if not self.avatar:
+            self.avatar = 'static/images/avatars/user/none_avatar_user.jpg'
         if not self.slug:
             self.slug = slugify(self.username)
             while True:
@@ -56,9 +68,9 @@ class CustomUser(AbstractUser):
 
 
 class MangaList(models.Model):
-    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='mangalist')
+    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='list_manga')
+    manga = models.ForeignKey(Manga, on_delete=models.CASCADE)
     name = models.CharField(max_length=15, choices=NAME_LIST_MANGA)
-    manga = models.ManyToManyField(Manga)
 
-    def __str__(self):
-        return self.name
+    class Meta:
+        unique_together = ['user', 'manga']
