@@ -68,6 +68,7 @@ class Category(models.Model):
         return self.title
 
 
+
 class Manga(models.Model):
     category = models.ForeignKey(Category, on_delete=models.CASCADE, related_name='category')
     id = models.AutoField(primary_key=True)
