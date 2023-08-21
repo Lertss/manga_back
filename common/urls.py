@@ -2,6 +2,8 @@ from django.urls import path, include
 from rest_framework import routers
 
 from common.views import MangaCommentViewSet, ChapterCommentViewSet, CommentUpdateView, CommentDeleteView
+from django.urls import path
+
 
 router = routers.DefaultRouter()
 
@@ -13,5 +15,8 @@ urlpatterns = [
     path('update/<int:pk>', CommentUpdateView.as_view(), name='comment-update'),
     path('delete/<int:pk>', CommentDeleteView.as_view(), name='comment-delete'),
     path('create/', include(router.urls)),
+
+
+
 
 ]

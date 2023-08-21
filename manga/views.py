@@ -1,7 +1,7 @@
 from django.db.models import Q
 from django.http import Http404
 from django.shortcuts import render
-from rest_framework import generics, viewsets
+from rest_framework import generics, viewsets, status
 
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -99,32 +99,16 @@ from .serializers import MangaCreateUpdateSerializer
 from rest_framework.generics import CreateAPIView
 from rest_framework.permissions import IsAuthenticated
 
+from rest_framework.generics import CreateAPIView
+from rest_framework.permissions import IsAuthenticated
+from .models import Manga
+from .serializers import MangaCreateUpdateSerializer
+
+
 class MangaCreateView(CreateAPIView):
     permission_classes = [IsAuthenticated]
     queryset = Manga.objects.all()
     serializer_class = MangaCreateUpdateSerializer
-
-    def perform_create(self, serializer):
-        thumbnail = self.request.data.get('thumbnail')
-        avatar = self.request.data.get('avatar')
-        counts = self.request.data.get('counts')
-        genre = self.request.data.get('genre')
-        chapters = self.request.data.get('chapter')
-        tags = self.request.data.get('tags')
-        review = self.request.data.get('review')
-
-        manga = serializer.save(
-            thumbnail=thumbnail,
-            avatar=avatar,
-            # Другие поля
-        )
-
-        manga.counts.set(counts)
-        manga.genre.set(genre)
-        manga.chapter.set(chapters)
-        manga.tags.set(tags)
-        manga.review = review
-        manga.save()
 
 
 class MangaUpdateView(RetrieveUpdateAPIView):
@@ -149,3 +133,42 @@ class ChapterUpdateView(RetrieveUpdateAPIView):
 class AuthorViewSet(viewsets.ModelViewSet):
     queryset = Author.objects.all()
     serializer_class = AuthorSerializer
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+class AllFilter(APIView):
+    def get(self, request, format=None):
+        authors = Author.objects.all()
+        countries = Country.objects.all()
+        genres = Genre.objects.all()
+        tags = Tag.objects.all()
+        categories = Category.objects.all()
+
+        author_serializer = AuthorSerializer(authors, many=True)
+        country_serializer = CountrySerializer(countries, many=True)
+        genre_serializer = GenreSerializer(genres, many=True)
+        tags_serializer = TagsSerializer(tags, many=True)
+        category_serializer = CategorySerializer(categories, many=True)
+
+        data = {
+            'authors': author_serializer.data,
+            'countries': country_serializer.data,
+            'genres': genre_serializer.data,
+            'tags': tags_serializer.data,
+
+        }
+
+        return Response(data, status=status.HTTP_200_OK)

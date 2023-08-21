@@ -2,9 +2,12 @@ from dj_rest_auth.registration.views import VerifyEmailView, ConfirmEmailView
 from dj_rest_auth.views import PasswordResetConfirmView
 from django.urls import path, include
 from users.views import CustomRegisterView, CustomUserDetailsView, OtherUserDetailView, GenderUpdateView, \
-    AdultUpdateView, AvatarUpdateView, change_email
+    AdultUpdateView, AvatarUpdateView, change_email, NotificationListView, NotificationDetailView
 
 urlpatterns = [
+    path('notifications/', NotificationListView.as_view(), name='notification-list'),
+    path('notifications/<int:pk>/', NotificationDetailView.as_view(), name='notification-detail'),
+
     path('user/update/gender/', GenderUpdateView.as_view(), name='user-update-gender'),
     path('user/update/adult/', AdultUpdateView.as_view(), name='user-update-adult'),
     path('user/update/avatar/', AvatarUpdateView.as_view(), name='user-update-avatar'),

@@ -1,16 +1,15 @@
 from rest_framework import serializers
 
 from common.serializers import CommentSerializer
+from users.models import MangaList
 from .models import *
 
 
 class AuthorSerializer(serializers.ModelSerializer):
     class Meta:
         model = Author
-        fields = ("first_name",
-                  "last_name",
-                  "get_absolute_url"
-                  )
+        fields = '__all__'
+
 
 
 
@@ -25,12 +24,12 @@ class GenreSerializer(serializers.ModelSerializer):
     class Meta:
         model = Genre
         fields = ("id",
-                  "genr",)
+                  "genr_name",)
 
 
 class TagsSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Tags
+        model = Tag
         fields = ("id",
                   "tag_name")
 
@@ -39,19 +38,12 @@ class CategorySerializer(serializers.ModelSerializer):
     accounts_items = serializers.SerializerMethodField()
 
     class Meta:
+        model = Category
         fields = ("id",
                   "title",
-                  'accounts_items',
-                  'get_absolute_url',
                   )
-        model = Category
 
-    def get_accounts_items(self, obj):
-        customer_account_query = Manga.objects.filter(
-            category_id=obj.id)
-        serializer = MangaSerializer(customer_account_query, many=True)
 
-        return serializer.data
 
 
 class GallerySerializer(serializers.ModelSerializer):
@@ -200,35 +192,33 @@ from rest_framework import serializers
 
 
 class MangaCreateUpdateSerializer(serializers.ModelSerializer):
+    author = serializers.PrimaryKeyRelatedField(queryset=Author.objects.all(), many=True)
     counts = serializers.PrimaryKeyRelatedField(queryset=Country.objects.all(), many=True)
     genre = serializers.PrimaryKeyRelatedField(queryset=Genre.objects.all(), many=True)
-    chapter = serializers.PrimaryKeyRelatedField(queryset=Chapter.objects.all(), many=True)
-    tags = serializers.PrimaryKeyRelatedField(queryset=Tags.objects.all(), many=True)
+    tags = serializers.PrimaryKeyRelatedField(queryset=Tag.objects.all(), many=True)
     review = serializers.CharField(max_length=1000)
-    thumbnail = serializers.ImageField(write_only=True)
     avatar = serializers.ImageField(write_only=True)
+
 
     class Meta:
         model = Manga
         fields = (
-            'id',
+            'category',
             'name_manga',
             'name_original',
+            'english_only_field',
             'author',
             'time_prod',
             'counts',
             'genre',
-            'chapter',
+            'decency',
             'tags',
             'review',
-            'thumbnail',
             'avatar',
-            'slug',
-            'get_thumbnail',
-            'get_avatar',
-            'get_absolute_url',
 
         )
+
+
 
 
 class MangaSerializer(serializers.ModelSerializer):
@@ -249,15 +239,25 @@ class MangaSerializer(serializers.ModelSerializer):
                   'author',
                   'time_prod',
                   'counts',
+                  'decency',
                   'genre',
                   'chapter',
                   'tags',
                   'comments',
                   'review',
-                  'get_thumbnail',
                   'get_avatar',
-                  'get_absolute_url',
-
                   )
 
+
+class MangaListSerializer(serializers.ModelSerializer):
+    manga = MangalastSerializer()
+
+    class Meta:
+        model = MangaList
+        fields = (
+            'id',
+            'name',
+            'user',
+            'manga',
+        )
 

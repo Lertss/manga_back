@@ -3,7 +3,9 @@ from django.db import models
 from django.contrib.auth import get_user_model
 from django.utils import timezone
 
-from manga.models import Manga
+from django.db import models
+from django.contrib.auth import get_user_model
+from manga.models import Manga, Chapter
 
 User = get_user_model()
 
@@ -41,3 +43,23 @@ class MangaRating(models.Model):
 
     class Meta:
         unique_together = ('manga', 'user')  # Уникальные оценки для каждого пользователя и манги
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

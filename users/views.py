@@ -158,50 +158,19 @@ def change_email(request):
 
 
 
-from rest_framework.decorators import api_view, permission_classes
-from rest_framework.permissions import IsAuthenticated
+from rest_framework import generics
 from rest_framework.response import Response
+from .models import Notification
+from .serializers import NotificationSerializer
 
+class NotificationListView(generics.ListAPIView):
+    serializer_class = NotificationSerializer
+    permission_classes = [IsAuthenticated]
+    def get_queryset(self):
+        user = self.request.user
+        return Notification.objects.filter(user=user)
 
-@api_view(['POST'])
-@permission_classes([IsAuthenticated])
-def add_manga_to_list(request):
-    user = request.user
-    manga_id = request.data.get('manga_id')
-    name = request.data.get('name')
-
-    manga = Manga.objects.get(pk=manga_id)
-    manga_list, created = MangaList.objects.get_or_create(user=user, manga=manga, defaults={'name': name})
-
-    if not created:
-        manga_list.name = name
-        manga_list.save()
-
-    return Response({'message': 'Manga added to the list successfully.'})
-
-
-@api_view(['POST'])
-@permission_classes([IsAuthenticated])
-def remove_manga_from_list(request):
-    user = request.user
-    manga_id = request.data.get('manga_id')
-
-    manga = Manga.objects.get(pk=manga_id)
-    manga_list = MangaList.objects.filter(user=user, manga=manga).first()
-
-    if manga_list:
-        manga_list.delete()
-        return Response({'message': 'Manga removed from the list successfully.'})
-    else:
-        return Response({'message': 'Manga was not found in the list.'})
-
-
-
-
-@api_view(['GET'])
-@permission_classes([IsAuthenticated])
-def user_manga_list(request):
-    user = request.user
-    manga_list = MangaList.objects.filter(user=user)
-    serialized_data = MangaListSerializer(manga_list, many=True)  # Замініть на свій серіалайзер
-    return Response(serialized_data.data)
+class NotificationDetailView(generics.RetrieveDestroyAPIView):
+    queryset = Notification.objects.all()
+    serializer_class = NotificationSerializer
+    permission_classes = [IsAuthenticated]
