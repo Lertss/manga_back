@@ -1,5 +1,8 @@
 # common/serializers.py
 from rest_framework import serializers
+
+
+from users.models import MangaList
 from .models import Comment
 
 class CommentSerializer(serializers.ModelSerializer):
@@ -17,3 +20,9 @@ class CommentSerializerUpdate(serializers.ModelSerializer):
         instance.text = validated_data.get('text', instance.text)
         instance.save()
         return instance
+
+
+
+
+
+

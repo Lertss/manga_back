@@ -25,7 +25,7 @@ SECRET_KEY = 'django-insecure-wb42+3q#&z210kfz8x2g32kkllrzywsc1%992-2&0l2jt5$=u-
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['127.0.0.1']
 
 # Application definition
 
@@ -45,7 +45,7 @@ INSTALLED_APPS = [
     'django.contrib.sites',
     'allauth',
     'allauth.account',
-    'allauth.socialaccount',
+
     'dj_rest_auth.registration',
 
     'manga',
@@ -166,7 +166,11 @@ ACCOUNT_EMAIL_REQUIRED = True
 ACCOUNT_AUTHENTICATION_METHOD = 'username'
 ACCOUNT_EMAIL_VERIFICATION = 'mandatory'
 ACCOUNT_CONFIRM_EMAIL_ON_GET = True
-LOGIN_URL = 'http://127.0.0.1:8000/dj-rest-auth/login'
+LOGIN_URL = 'http://127.0.0.1:8000/auth/login'
+ACCOUNT_ADAPTER = 'users.email_url.CustomAccountURL'
+ACCOUNT_USER_MODEL_EMAIL_FIELD = 'email'
+
+
 OLD_PASSWORD_FIELD_ENABLED = True
 LOGOUT_ON_PASSWORD_CHANGE = False
 

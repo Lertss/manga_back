@@ -1,33 +1,17 @@
 import random
-from datetime import date
 
-from django.db import models
 from django.contrib.auth.models import AbstractUser
-
+from django.db import IntegrityError
+from django.db import models
+from django.utils.text import slugify
 
 from manga.models import Manga
+from manga_back.constants import GENDER_SELECTION, NAME_LIST_MANGA
 
-GENDER_SELECTION = [
-    ('Male', 'Male'),
-    ('Female', 'Female'),
-    ('Not Specified', 'Not Specified'),
-]
-NAME_LIST_MANGA = [
-    ('Reading', 'Reading'),
-    ('I will read', 'I will read'),
-    ('Read', 'Read'),
-    ('Abandoned', 'Abandoned'),
-    ('Postponed', 'Postponed'),
-    ('Not interested', 'Not interested'),
-]
-
-
-from django.utils.text import slugify
-from django.db import IntegrityError
 
 class CustomUser(AbstractUser):
     gender = models.CharField(max_length=15, choices=GENDER_SELECTION)
-    birthdate = models.DateField(null=True, blank=True)
+    adult = models.BooleanField(default=False, help_text="For adults? yes/no")
     avatar = models.ImageField(upload_to='static/images/avatars/user/', blank=True)
     slug = models.SlugField(null=False, unique=True)
     first_name = None
@@ -66,7 +50,6 @@ class CustomUser(AbstractUser):
             super().save(*args, **kwargs)
 
 
-
 class MangaList(models.Model):
     user = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='list_manga')
     manga = models.ForeignKey(Manga, on_delete=models.CASCADE)
@@ -74,3 +57,26 @@ class MangaList(models.Model):
 
     class Meta:
         unique_together = ['user', 'manga']
+
+
+
+
+
+
+
+
+
+from django.db import models
+from django.contrib.auth import get_user_model
+
+User = get_user_model()
+
+class Notification(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    chapter = models.ForeignKey('manga.Chapter', on_delete=models.CASCADE)
+    created_at = models.DateTimeField(auto_now_add=True)
+    is_read = models.BooleanField(default=False)
+
+
+    class Meta:
+        ordering = ['-created_at']
