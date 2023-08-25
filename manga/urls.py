@@ -2,12 +2,15 @@ from django.urls import path, include
 from rest_framework import routers
 
 from common.views import add_manga_to_list, remove_manga_from_list, user_manga_list
-from manga.views import MangaCreateView, MangaUpdateView, ChapterCreateView, ChapterUpdateView, ChapterListView, \
-    MangaListHome, allManga, ShowChapter, ShowManga, AuthorViewSet, AllFilter
+from manga.views import MangaCreateView, MangaUpdateView, allManga, ShowManga, AuthorViewSet, AllFilter, ChapterViewSet, \
+    PageViewSet, MangaListHome
 
 router = routers.DefaultRouter()
 
 router.register(r'authors', AuthorViewSet)
+router.register(r'chapters', ChapterViewSet)
+router.register(r'pages', PageViewSet)
+
 
 urlpatterns = [
     path('all-data/', AllFilter.as_view(), name='all-data'),
@@ -20,12 +23,9 @@ urlpatterns = [
     path('manga/create/', MangaCreateView.as_view(), name='manga-create'),
     path('manga-update/<slug>/', MangaUpdateView.as_view(), name='manga-update'),
 
-    path('chapter/create/', ChapterCreateView.as_view(), name='chapter-create'),
-    path('chapter-update/<int:id>/', ChapterUpdateView.as_view(), name='chapter-update'),
 
-    path('latest_chapter/', ChapterListView.as_view()),
     path('home/', MangaListHome.as_view()),
     path('allManga/', allManga.as_view()),
-    path('<slug:manga_slug>/<slug:chapter_slug>/', ShowChapter.as_view()),
+    # path('<slug:manga_slug>/<slug:chapter_slug>/', ShowChapter.as_view()),
     path('<slug:manga_slug>/', ShowManga.as_view()),
 ]

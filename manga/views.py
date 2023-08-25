@@ -1,14 +1,13 @@
-from django.db.models import Q
 from django.http import Http404
-from django.shortcuts import render
-from rest_framework import generics, viewsets, status
-
-from rest_framework.views import APIView
+from rest_framework import viewsets, status
+from rest_framework.decorators import action
 from rest_framework.response import Response
-from rest_framework.decorators import api_view
+from rest_framework.views import APIView
+from rest_framework.generics import RetrieveUpdateAPIView
 
+from rest_framework.generics import CreateAPIView
+from rest_framework.permissions import IsAuthenticated
 from .serializers import *
-from .models import Manga
 
 
 class MangaListHome(APIView):
@@ -25,21 +24,10 @@ class MangaListHome(APIView):
         return Response(serializer)
 
 
-class ChapterListView(APIView):
-    def get(self, request):
-        chapters = Chapter.objects.all()
-        serializer = ChapterlastSerializer(chapters, many=True, context={'request': request})
-        return Response(serializer.data)
-
-
-
 class allManga(APIView):
     def get(self, request, ):
-        chapters = Chapter.objects.all()
-        serializere = ChapterSerializer(chapters, many=True)
-        print(serializere.data)
         manga = Manga.objects.all()
-        serializer = MangaSerializer(manga, many=True)
+        serializer = MangalastSerializer(manga, many=True)
         return Response(serializer.data)
 
 
@@ -63,47 +51,6 @@ class ShowManga(APIView):
 #         serializer = MangaSerializer(person, many=True)
 #         return Response(serializer.data)
 
-class ShowChapter(APIView):  # ShowChapter
-    def get_object(self, manga_slug, chapter_slug):
-        try:
-            return Chapter.objects.filter(manga__slug=manga_slug).get(slug=chapter_slug)
-        except Chapter.DoesNotExist:
-            raise Http404
-
-    def get(self, request, manga_slug, chapter_slug, format=None):
-        chapter = self.get_object(manga_slug, chapter_slug)
-        serializer = ChapterSerializer(chapter)
-        return Response(serializer.data)
-
-
-
-
-
-
-
-
-
-from rest_framework.generics import CreateAPIView
-from .serializers import ChapterSerializer
-
-from rest_framework.generics import RetrieveUpdateAPIView
-from .models import Chapter
-from .serializers import ChapterSerializer
-
-from rest_framework.generics import CreateAPIView
-from .serializers import ChapterSerializer
-
-from rest_framework.generics import RetrieveUpdateAPIView
-from .serializers import MangaCreateUpdateSerializer
-
-from rest_framework.generics import CreateAPIView
-from rest_framework.permissions import IsAuthenticated
-
-from rest_framework.generics import CreateAPIView
-from rest_framework.permissions import IsAuthenticated
-from .models import Manga
-from .serializers import MangaCreateUpdateSerializer
-
 
 class MangaCreateView(CreateAPIView):
     permission_classes = [IsAuthenticated]
@@ -118,35 +65,9 @@ class MangaUpdateView(RetrieveUpdateAPIView):
     permission_classes = [IsAuthenticated]
 
 
-class ChapterCreateView(CreateAPIView):
-    queryset = Chapter.objects.all()
-    serializer_class = ChapterCreateSerializer
-    permission_classes = [IsAuthenticated]
-
-
-class ChapterUpdateView(RetrieveUpdateAPIView):
-    queryset = Chapter.objects.all()
-    serializer_class = ChapterUpdateSerializer
-    lookup_field = 'id'
-    permission_classes = [IsAuthenticated]
-
 class AuthorViewSet(viewsets.ModelViewSet):
     queryset = Author.objects.all()
     serializer_class = AuthorSerializer
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 class AllFilter(APIView):
@@ -172,3 +93,97 @@ class AllFilter(APIView):
         }
 
         return Response(data, status=status.HTTP_200_OK)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+from rest_framework import viewsets
+from rest_framework.parsers import MultiPartParser, FormParser
+from rest_framework.response import Response
+from rest_framework import status
+
+from .models import Chapter, Page
+from .serializers import ChapterSerializer, PageSerializer
+
+class ChapterViewSet(viewsets.ModelViewSet):
+    queryset = Chapter.objects.all()
+    serializer_class = ChapterSerializer
+
+    def create(self, request, *args, **kwargs):
+        pages_data = request.data.pop('image', [])
+        numb = request.data.pop('page_number', [])
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
+        chapter_instance = serializer.instance
+        print(chapter_instance)# Отримати створений екземпляр розділу
+        for image, page_number in zip(pages_data, numb):
+            Page.objects.create(chapter=chapter_instance, image=image, page_number=page_number)
+
+        headers = self.get_success_headers(serializer.data)
+        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+
+    def update(self, request, *args, **kwargs):
+        instance = self.get_object()
+        pages_data = request.data.pop('pages', [])  # Оновити налаштування ключа для сторінок
+        serializer = self.get_serializer(instance, data=request.data)
+        serializer.is_valid(raise_exception=True)
+        self.perform_update(serializer)
+
+        # Оновити сторінки
+        for page_data in pages_data:
+            page_id = page_data.get('id', None)
+            if page_id:
+                page_instance = Page.objects.get(id=page_id)
+                PageSerializer(page_instance, data=page_data, partial=True).is_valid(raise_exception=True)
+                page_instance.save()
+
+        return Response(serializer.data)
+    @action(detail=True, methods=['patch'], url_path='update-title')
+    def update_title(self, request, pk=None):
+        instance = self.get_object()
+        title = request.data.get('title')
+        if title is not None:
+            instance.title = title
+            instance.save()
+            return Response({'message': 'Title updated successfully.'})
+        return Response({'error': 'Title field is required.'}, status=status.HTTP_400_BAD_REQUEST)
+
+    @action(detail=True, methods=['patch'], url_path='update-volume')
+    def update_volume(self, request, pk=None):
+        instance = self.get_object()
+        volume = request.data.get('volume')
+        if volume is not None:
+            instance.volume = volume
+            instance.save()
+            return Response({'message': 'Volume updated successfully.'})
+        return Response({'error': 'Volume field is required.'}, status=status.HTTP_400_BAD_REQUEST)
+
+    @action(detail=True, methods=['patch'], url_path='update-chapter-number')
+    def update_chapter_number(self, request, pk=None):
+        instance = self.get_object()
+        chapter_number = request.data.get('chapter_number')
+        if chapter_number is not None:
+            instance.chapter_number = chapter_number
+            instance.save()
+            return Response({'message': 'Chapter number updated successfully.'})
+        return Response({'error': 'Chapter number field is required.'}, status=status.HTTP_400_BAD_REQUEST)
+
+
+class PageViewSet(viewsets.ModelViewSet):
+    queryset = Page.objects.all()
+    serializer_class = PageSerializer
+    parser_classes = (MultiPartParser, FormParser)

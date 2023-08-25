@@ -11,8 +11,6 @@ class AuthorSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
-
-
 class CountrySerializer(serializers.ModelSerializer):
     class Meta:
         model = Country
@@ -46,103 +44,6 @@ class CategorySerializer(serializers.ModelSerializer):
 
 
 
-class GallerySerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Gallery
-        fields = ("id",
-                  "get_image",)
-
-
-
-class ChapterSerializer(serializers.ModelSerializer):
-    galleries = GallerySerializer(many=True, read_only=True)
-    comments = CommentSerializer(many=True, read_only=True)
-    class Meta:
-        model = Chapter
-        fields = ("id",
-                  "num",
-                  "get_absolute_url",
-                  "title",
-                  "time_prod",
-                  "data_g",
-                  "galleries",
-                  'volumes',
-                  'comments')
-
-
-from rest_framework import serializers
-
-
-class ChapterCreateSerializer(serializers.ModelSerializer):
-    galleries = GallerySerializer(many=True)  # Вложенная сериализация
-    class Meta:
-        model = Chapter
-        fields = (
-            'id',
-            'num',
-            'title',
-            'time_prod',
-            'slug',
-            'get_absolute_url',
-            'galleries',
-            'volumes'
-        )
-
-    def create(self, validated_data):
-        galleries_data = validated_data.pop('galleries')  # Витягаємо дані для галерей
-        volumes_data = validated_data.pop('volumes')  # Витягаємо дані для томів
-
-        # Створюємо розділ
-        chapter = Chapter.objects.create(**validated_data)
-
-        # Створюємо пов'язані галереї
-        for gallery_data in galleries_data:
-            Gallery.objects.create(chapter=chapter, **gallery_data)
-
-        return chapter
-
-
-class ChapterUpdateSerializer(serializers.ModelSerializer):
-    galleries = GallerySerializer(many=True)  # Вложенна серіалізація для Gallery
-    class Meta:
-        model = Chapter
-        fields = (
-            'id',  # Включите поле id
-            'num',
-            'title',
-            'time_prod',
-            'slug',
-            'get_absolute_url',
-            'galleries',
-            'volumes'
-        )
-
-    def update(self, instance, validated_data):
-        galleries_data = validated_data.pop('galleries')  # Извлекаем данные для galleries
-        volumes_data = validated_data.pop('volumes')  # Извлекаем данные для томів
-
-        # Оновлюємо поля моделі Chapter
-        instance.num = validated_data.get('num', instance.num)
-        instance.title = validated_data.get('title', instance.title)
-        instance.time_prod = validated_data.get('time_prod', instance.time_prod)
-        instance.slug = validated_data.get('slug', instance.slug)
-        instance.save()
-
-        # Оновлюємо пов'язані об'єкти Gallery
-        for gallery_data in galleries_data:
-            gallery_id = gallery_data.get('id', None)
-            if gallery_id:
-                gallery = Gallery.objects.get(id=gallery_id, chapter=instance)
-                gallery.image = gallery_data.get('image', gallery.image)
-                gallery.save()
-            else:
-                Gallery.objects.create(chapter=instance, **gallery_data)
-
-
-        return instance
-
-
-
 
 class MangalastSerializer(serializers.ModelSerializer):
     thumbnail = serializers.SerializerMethodField()
@@ -165,40 +66,28 @@ class MangalastSerializer(serializers.ModelSerializer):
         return representation
 
 
-class ChapterlastSerializer(serializers.ModelSerializer):
-    manga = MangalastSerializer()
+
+class ChapterViewsMangaSerializer(serializers.ModelSerializer):
+
+
     class Meta:
         model = Chapter
-        fields = ['manga',
-                  'num',
-                  'volumes',
-                  'data_g',
+        fields = ('id',
+                  'manga',
                   'title',
-                  'slug']
+                  'volume',
+                  'chapter_number',
+                  'slug')
 
-
-class ChapterSimpleSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Chapter
-        fields = ("id",
-                  "num",
-                  "title",
-                  'volumes',
-                  "data_g",
-                  "get_absolute_url",)
-
-
-from rest_framework import serializers
 
 
 class MangaCreateUpdateSerializer(serializers.ModelSerializer):
-    author = serializers.PrimaryKeyRelatedField(queryset=Author.objects.all(), many=True)
-    counts = serializers.PrimaryKeyRelatedField(queryset=Country.objects.all(), many=True)
-    genre = serializers.PrimaryKeyRelatedField(queryset=Genre.objects.all(), many=True)
-    tags = serializers.PrimaryKeyRelatedField(queryset=Tag.objects.all(), many=True)
+    author = serializers.SlugRelatedField(slug_field='id', queryset=Author.objects.all(), many=True)
+    counts = serializers.SlugRelatedField(slug_field='id', queryset=Country.objects.all(), many=True)
+    genre = serializers.SlugRelatedField(slug_field='id', queryset=Genre.objects.all(), many=True)
+    tags = serializers.SlugRelatedField(slug_field='id', queryset=Tag.objects.all(), many=True)
     review = serializers.CharField(max_length=1000)
     avatar = serializers.ImageField(write_only=True)
-
 
     class Meta:
         model = Manga
@@ -215,19 +104,17 @@ class MangaCreateUpdateSerializer(serializers.ModelSerializer):
             'tags',
             'review',
             'avatar',
-
         )
-
-
 
 
 class MangaSerializer(serializers.ModelSerializer):
     author = AuthorSerializer(many=True, read_only=True)
     counts = CountrySerializer(many=True, read_only=True)
-    chapter = ChapterSimpleSerializer(many=True, read_only=True)
     tags = TagsSerializer(many=True, read_only=True)
     genre = GenreSerializer(many=True, read_only=True)
+    chapters = ChapterViewsMangaSerializer(many=True, read_only=True)
     comments = CommentSerializer(many=True, read_only=True)
+
     class Meta:
         model = Manga
         fields = ('id',
@@ -240,8 +127,8 @@ class MangaSerializer(serializers.ModelSerializer):
                   'time_prod',
                   'counts',
                   'decency',
+                  'chapters',
                   'genre',
-                  'chapter',
                   'tags',
                   'comments',
                   'review',
@@ -261,3 +148,45 @@ class MangaListSerializer(serializers.ModelSerializer):
             'manga',
         )
 
+
+
+
+
+
+from rest_framework import serializers
+from .models import Chapter, Page
+
+class PageSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Page
+        fields = ('id',
+                  'image',
+                  'page_number')
+
+class ChapterSerializer(serializers.ModelSerializer):
+    pages = PageSerializer(many=True, required=False)  # Додайте required=False
+
+
+    class Meta:
+        model = Chapter
+        fields = ('id',
+                  'manga',
+                  'title',
+                  'volume',
+                  'chapter_number',
+                  'pages',
+                  'slug')
+
+
+
+class LastChapterSerializer(serializers.ModelSerializer):
+    manga = MangalastSerializer(many=True, read_only=True)
+
+
+    class Meta:
+        model = Chapter
+        fields = ('manga',
+                  'title',
+                  'volume',
+                  'chapter_number',
+                  'slug')
