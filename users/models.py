@@ -16,15 +16,7 @@ class CustomUser(AbstractUser):
     slug = models.SlugField(null=False, unique=True)
     first_name = None
     last_name = None
-    comments = models.ManyToManyField('common.Comment', related_name='user_comments', blank=True)
 
-    def add_comment(self, text):
-        from common.models import Comment
-        Comment.add_comment(self, text, self)
-
-    def remove_comment(self, comment_id):
-        from common.models import Comment
-        Comment.remove_comment(comment_id, self)
 
     def get_absolute_url(self):
         return f'/{self.slug}/'
@@ -58,13 +50,10 @@ class MangaList(models.Model):
     class Meta:
         unique_together = ['user', 'manga']
 
-from django.db import models
-from django.contrib.auth import get_user_model
 
-User = get_user_model()
 
 class Notification(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
     chapter = models.ForeignKey('manga.Chapter', on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now_add=True)
     is_read = models.BooleanField(default=False)

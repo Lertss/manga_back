@@ -1,65 +1,46 @@
-from django.core.validators import MinValueValidator, MaxValueValidator
-from django.db import models
 from django.contrib.auth import get_user_model
-from django.utils import timezone
-
 from django.db import models
-from django.contrib.auth import get_user_model
-from manga.models import Manga
 
-User = get_user_model()
+
+from manga.models import Chapter, Manga
+from users.models import CustomUser
+
 
 class Comment(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
-    text = models.TextField(max_length=1000)
-    timestamp = models.DateTimeField(default=timezone.now)
-
-    def __str__(self):
-        return f"Comment by {self.user.username} on {self.timestamp}"
-
-    @classmethod
-    def add_comment(cls, user, text, obj):
-        comment = cls.objects.create(user=user, text=text)
-        obj.comments.add(comment)
-
-    @classmethod
-    def remove_comment(cls, comment_id, obj):
-        try:
-            comment = cls.objects.get(id=comment_id)
-            obj.comments.remove(comment)
-            comment.delete()
-        except cls.DoesNotExist:
-            pass
-
-
-
-
-
-class MangaRating(models.Model):
-    manga = models.ForeignKey(Manga, on_delete=models.CASCADE, related_name='ratings')
-    user = models.ForeignKey(User, on_delete=models.CASCADE)  # Подразумевается, что у вас есть модель User
-    rating = models.PositiveIntegerField(validators=[MinValueValidator(1), MaxValueValidator(10)])
+    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
+    manga = models.ForeignKey(Manga, on_delete=models.CASCADE, blank=True, null=True)
+    chapter = models.ForeignKey(Chapter, on_delete=models.CASCADE, blank=True, null=True)
+    content = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
-        unique_together = ('manga', 'user')  # Уникальные оценки для каждого пользователя и манги
+        ordering = ['-created_at']
+
+    def save(self, *args, **kwargs):
+        if not self.pk:
+            self.user = self.user or get_user_model().objects.get(pk=self.user_id)  # Впевніться, що користувач встановлено
+        super().save(*args, **kwargs)
+    def __str__(self):
+        return f"Comment by {self.user.username}"
 
 
+from django.db import models
+from django.contrib.auth.models import User
+from manga.models import Manga
+
+class MangaRating(models.Model):
+    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
+    manga = models.ForeignKey(Manga, on_delete=models.CASCADE, related_name='ratings')
+    rating = models.PositiveIntegerField(choices=[(i, i) for i in range(1, 6)])
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        unique_together = ('user', 'manga')
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+    def save(self, *args, **kwargs):
+        if not self.pk:
+            self.user = self.user or get_user_model().objects.get(pk=self.user_id)  # Впевніться, що користувач встановлено
+        super().save(*args, **kwargs)

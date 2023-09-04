@@ -1,31 +1,36 @@
 from django.urls import path, include
 from rest_framework import routers
 
-from common.views import add_manga_to_list, remove_manga_from_list, user_manga_list
-from manga.views import MangaCreateView, MangaUpdateView, allManga, ShowManga, AuthorViewSet, AllFilter, ChapterViewSet, \
-    PageViewSet, MangaListHome
+from manga import views
 
 router = routers.DefaultRouter()
 
-router.register(r'authors', AuthorViewSet)
-router.register(r'chapters', ChapterViewSet)
-router.register(r'pages', PageViewSet)
+router.register(r'authors', views.AuthorViewSet, basename='author')
+router.register(r'chapters', views.ChapterViewSet, basename='chapter')
+router.register(r'pages', views.PageViewSet, basename='page')
+router.register(r'manga', views.MangaViewSet, basename='manga')
+router.register(r'search', views.Search)
 
 
 urlpatterns = [
-    path('all-data/', AllFilter.as_view(), name='all-data'),
+    path('random-manga/', views.RandomMangaView.as_view(), name='random-manga'),
+
+    path('top-manga-sto/', views.TopMangaView.as_view(), name='top-manga'),
+    path('top-manga-last-year/', views.TopMangaLastYearView.as_view(), name='top-manga-last-year'),
+    path('top-manga-comments/', views.TopMangaCommentsView.as_view(), name='top-manga-comments'),
+
+    path('all-data/', views.AllFilter.as_view(), name='all-data'),
     path('', include(router.urls)),
 
-    path('add-manga-list/', add_manga_to_list, name='add-manga'),
-    path('remove-manga-list/', remove_manga_from_list, name='remove-manga'),
-    path('user-manga-list/', user_manga_list, name='user-manga-list'),
+    path('add-manga-list/', views.add_manga_to_list, name='add-manga'),
+    path('remove-manga-list/', views.remove_manga_from_list, name='remove-manga'),
+    path('user-manga-list/', views.user_manga_list, name='user-manga-list'),
 
-    path('manga/create/', MangaCreateView.as_view(), name='manga-create'),
-    path('manga-update/<slug>/', MangaUpdateView.as_view(), name='manga-update'),
+    path('last-chapters/', views.last_hundred_chapters, name='get_last_chapters'),
 
 
-    path('home/', MangaListHome.as_view()),
-    path('allManga/', allManga.as_view()),
-    # path('<slug:manga_slug>/<slug:chapter_slug>/', ShowChapter.as_view()),
-    path('<slug:manga_slug>/', ShowManga.as_view()),
+    path('home/', views.MangaListHome.as_view()),
+    path('allManga/', views.AllManga.as_view(), name='all_manga'),
+    path('<slug:manga_slug>/<slug:chapter_slug>/', views.ShowChapter.as_view()),
+    path('<slug:manga_slug>/', views.ShowManga.as_view()),
 ]

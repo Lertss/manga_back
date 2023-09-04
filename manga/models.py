@@ -1,5 +1,10 @@
 from __future__ import unicode_literals
+
+from django.contrib.contenttypes.fields import GenericRelation
 from django.core.validators import RegexValidator
+from django.db.models import Avg
+from django.db.models.signals import pre_save
+from django.dispatch import receiver
 from django.utils import timezone
 from django.contrib.auth.models import PermissionsMixin
 from django.contrib.auth.base_user import AbstractBaseUser
@@ -9,6 +14,8 @@ from PIL import Image
 from django.core.files import File
 from django.utils.text import slugify
 from django.db import models
+
+
 from manga_back.constants import MANGA_GENRES, MANGA_TAGS, COUNTRY_CHOICES, CATEGORY_CHOICES
 
 
@@ -65,15 +72,11 @@ class Manga(models.Model):
     tags = models.ManyToManyField(Tag, related_name='tags', blank=False)
     genre = models.ManyToManyField(Genre, related_name='genre', blank=False)
     decency = models.BooleanField(default=False, help_text="For adults? yes/no")
-    average_rating = models.FloatField(default=0)  # Средняя оценка
-    total_ratings = models.PositiveIntegerField(default=0)  # Количество оценок
     review = models.TextField(max_length=1000, blank=False)
     avatar = models.ImageField(upload_to='static/images/avatars/',
                                default='default/none_avatar.png/',
                                blank=True)
     thumbnail = models.ImageField(upload_to='media/products/miniava', blank=True, null=True)
-    comments = models.ManyToManyField('common.Comment', related_name='manga_comments', blank=True)
-
     slug = models.SlugField(null=False, unique=True)
 
     def __init__(self, *args, **kwargs):
@@ -82,6 +85,9 @@ class Manga(models.Model):
 
     def __str__(self):
         return self.name_manga
+
+    def average_rating(self):
+        return self.ratings.aggregate(Avg('rating'))['rating__avg']
 
     def get_avatar(self):
         if self.avatar:
@@ -103,19 +109,7 @@ class Manga(models.Model):
             else:
                 return ''
 
-    def add_comment(self, user, text):
-        from common.models import Comment
-        comment = Comment.objects.create(user=user, text=text)
-        self.comments.add(comment)
 
-    def remove_comment(self, comment_id):
-        from common.models import Comment
-        try:
-            comment = Comment.objects.get(id=comment_id)
-            self.comments.remove(comment)
-            comment.delete()
-        except Comment.DoesNotExist:
-            pass
 
     def make_thumbnail(self, avatar):
         img = Image.open(avatar)
@@ -128,7 +122,8 @@ class Manga(models.Model):
         return thumbnail
 
     def save(self, *args, **kwargs):
-        self.slug = slugify(self.english_only_field)
+        if not self.slug:
+            self.slug = f'{slugify(self.english_only_field)}'
         super().save(*args, **kwargs)
 
 
@@ -140,42 +135,37 @@ from io import BytesIO
 from django.core.files import File
 from django.utils.text import slugify
 from django.utils.translation import gettext_lazy as _
-from common.models import Comment  # Поправте шлях на ваш модуль Comment
+
 
 class Chapter(models.Model):
     manga = models.ForeignKey(Manga, on_delete=models.CASCADE, related_name='chapters')
     title = models.CharField(_('title'), max_length=100, blank=True)
     chapter_number = models.IntegerField(_('chapter_number'), blank=False)
     volume = models.IntegerField(_('chapter_number'), blank=False)
-    comments = models.ManyToManyField('common.Comment', related_name='chapter_comments', blank=True)
+    time_prod = models.DateTimeField(default=timezone.now)
     slug = models.SlugField(null=False, unique=True)
 
     def __str__(self):
         return f"{self.manga.name_manga} - Chapter {self.chapter_number}"
 
+    def data_g(self):
+        return self.time_prod.strftime("%m/%d/%Y")
+
     def save(self, *args, **kwargs):
         self.slug = slugify(f"{self.manga.english_only_field}-{self.chapter_number}")
         super().save(*args, **kwargs)
 
-    def add_comment(self, user, text):
-        from common.models import Comment
-        comment = Comment.objects.create(user=user, text=text)
-        self.comments.add(comment)
-
-    def remove_comment(self, comment_id):
-        from common.models import Comment
-        try:
-            comment = Comment.objects.get(id=comment_id)
-            self.comments.remove(comment)
-            comment.delete()
-        except Comment.DoesNotExist:
-            pass
 
 
 class Page(models.Model):
     chapter = models.ForeignKey(Chapter, on_delete=models.CASCADE, related_name='pages')  # Зв'язок ForeignKey до Chapter
     image = models.ImageField(upload_to='media/manga/pages/')
     page_number = models.PositiveIntegerField(_('page_number'))
+
+    def get_image(self):
+        if self.image:
+            return 'http://127.0.0.1:8000' + self.image.url
+        return ''
 
     def save(self, *args, **kwargs):
         if not self.page_number:
@@ -185,13 +175,3 @@ class Page(models.Model):
             else:
                 self.page_number = 1
         super().save(*args, **kwargs)
-
-    def make_thumbnail(self):
-        img = Image.open(self.image)
-        img = img.resize((120, 170))
-
-        thumb_io = BytesIO()
-        img.save(thumb_io, 'PNG', quality=85)
-
-        thumbnail = File(thumb_io, name=self.image.name)
-        return thumbnail

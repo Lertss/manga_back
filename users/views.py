@@ -34,19 +34,29 @@ from .models import CustomUser
 class OtherUserDetailView(generics.RetrieveAPIView):
     queryset = CustomUser.objects.all()
     serializer_class = CustomUserDetailsSerializer
+    lookup_field = 'slug'  # Додайте це поле
+    # def retrieve(self, request, *args, **kwargs):
+    #     instance = self.get_object()
+    #     serializer = self.get_serializer(instance)
+    #
+    #     Отримати коментарі користувача та додати їх до відповіді
+    #     comments = CommentSerializer(instance.comments.all(), many=True).data
+    #     data = serializer.data
+    #     data['comments'] = comments
+    #
+    #     return Response(data)
 
-    def retrieve(self, request, *args, **kwargs):
-        instance = self.get_object()
-        serializer = self.get_serializer(instance)
 
-        # Отримати коментарі користувача та додати їх до відповіді
-        comments = CommentSerializer(instance.comments.all(), many=True).data
-        data = serializer.data
-        data['comments'] = comments
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from .models import CustomUser
+from .serializers import CustomUserLastDetailsSerializer
 
-        return Response(data)
-
-
+class LatestUsersView(APIView):
+    def get(self, request):
+        latest_users = CustomUser.objects.all().order_by('-date_joined')[:10]
+        serializer = CustomUserLastDetailsSerializer(latest_users, many=True)
+        return Response(serializer.data)
 
 
 

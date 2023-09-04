@@ -1,8 +1,7 @@
-from rest_framework import serializers
-
-from common.serializers import CommentSerializer
 from users.models import MangaList
 from .models import *
+from rest_framework import serializers
+from .models import Chapter, Page
 
 
 class AuthorSerializer(serializers.ModelSerializer):
@@ -33,25 +32,27 @@ class TagsSerializer(serializers.ModelSerializer):
 
 
 class CategorySerializer(serializers.ModelSerializer):
-    accounts_items = serializers.SerializerMethodField()
 
     class Meta:
         model = Category
         fields = ("id",
-                  "title",
+                  "cat_name",
                   )
 
 
-
-
-
-class MangalastSerializer(serializers.ModelSerializer):
+class MangaLastSerializer(serializers.ModelSerializer):
     thumbnail = serializers.SerializerMethodField()
     url = serializers.SerializerMethodField()
 
     class Meta:
         model = Manga
-        fields = ['name_manga', 'thumbnail', 'url']
+        fields = [
+            'name_manga',
+            'name_original',
+            'english_only_field',
+            'thumbnail',
+            'url'
+        ]
 
     def get_thumbnail(self, obj):
         return obj.get_thumbnail()
@@ -66,10 +67,31 @@ class MangalastSerializer(serializers.ModelSerializer):
         return representation
 
 
+class MangaRandomSerializer(serializers.ModelSerializer):
+    thumbnail = serializers.SerializerMethodField()
+    url = serializers.SerializerMethodField()
+    category_title = serializers.SerializerMethodField()
+    class Meta:
+        model = Manga
+        fields = [
+            'name_manga',
+            'review',
+            'thumbnail',
+            'url',
+            'category_title'
+        ]
+
+    def get_thumbnail(self, obj):
+        return obj.get_thumbnail()
+
+    def get_url(self, obj):
+        return obj.get_absolute_url()
+
+    def get_category_title(self, obj):
+        return obj.category.cat_name
+
 
 class ChapterViewsMangaSerializer(serializers.ModelSerializer):
-
-
     class Meta:
         model = Chapter
         fields = ('id',
@@ -78,7 +100,6 @@ class ChapterViewsMangaSerializer(serializers.ModelSerializer):
                   'volume',
                   'chapter_number',
                   'slug')
-
 
 
 class MangaCreateUpdateSerializer(serializers.ModelSerializer):
@@ -104,16 +125,19 @@ class MangaCreateUpdateSerializer(serializers.ModelSerializer):
             'tags',
             'review',
             'avatar',
+
         )
 
 
 class MangaSerializer(serializers.ModelSerializer):
+    from common.serializers import CommentSerializer
     author = AuthorSerializer(many=True, read_only=True)
     counts = CountrySerializer(many=True, read_only=True)
     tags = TagsSerializer(many=True, read_only=True)
     genre = GenreSerializer(many=True, read_only=True)
     chapters = ChapterViewsMangaSerializer(many=True, read_only=True)
     comments = CommentSerializer(many=True, read_only=True)
+    category_title = serializers.SerializerMethodField()
 
     class Meta:
         model = Manga
@@ -121,8 +145,6 @@ class MangaSerializer(serializers.ModelSerializer):
                   'name_manga',
                   'name_original',
                   'english_only_field',
-                  'average_rating',
-                  'total_ratings',
                   'author',
                   'time_prod',
                   'counts',
@@ -133,11 +155,19 @@ class MangaSerializer(serializers.ModelSerializer):
                   'comments',
                   'review',
                   'get_avatar',
+                  'average_rating',
+                  'category_title',
+                  'get_absolute_url',
                   )
 
+    def get_average_rating(self, obj):
+        return obj.average_rating()
+
+    def get_category_title(self, obj):
+        return obj.category.cat_name
 
 class MangaListSerializer(serializers.ModelSerializer):
-    manga = MangalastSerializer()
+    manga = MangaLastSerializer()
 
     class Meta:
         model = MangaList
@@ -149,23 +179,17 @@ class MangaListSerializer(serializers.ModelSerializer):
         )
 
 
-
-
-
-
-from rest_framework import serializers
-from .models import Chapter, Page
-
 class PageSerializer(serializers.ModelSerializer):
     class Meta:
         model = Page
         fields = ('id',
                   'image',
+                  'get_image',
                   'page_number')
+
 
 class ChapterSerializer(serializers.ModelSerializer):
     pages = PageSerializer(many=True, required=False)  # Додайте required=False
-
 
     class Meta:
         model = Chapter
@@ -178,15 +202,14 @@ class ChapterSerializer(serializers.ModelSerializer):
                   'slug')
 
 
-
 class LastChapterSerializer(serializers.ModelSerializer):
-    manga = MangalastSerializer(many=True, read_only=True)
-
 
     class Meta:
         model = Chapter
-        fields = ('manga',
+        fields = (
                   'title',
                   'volume',
                   'chapter_number',
-                  'slug')
+                  'data_g',
+                  'slug',
+        )

@@ -1,108 +1,82 @@
-# manga/views.py
-from rest_framework import viewsets, generics
-from rest_framework.generics import get_object_or_404
-from rest_framework.permissions import IsAuthenticated
-
-from common.models import Comment
-from manga.models import Manga, Chapter
 from manga.serializers import MangaListSerializer
 from users.models import MangaList
-from .serializers import CommentSerializer, CommentSerializerUpdate
-
-
-class MangaCommentViewSet(viewsets.ModelViewSet):
-    serializer_class = CommentSerializer
-    permission_classes = [IsAuthenticated]
-
-    def get_queryset(self):
-        manga_pk = self.kwargs['manga_pk']
-        manga = Manga.objects.get(pk=manga_pk)
-        return manga.comments.all()
-
-    def perform_create(self, serializer):
-        manga_pk  = self.kwargs['manga_pk']  # Витягніть ID розділу з URL
-        manga = get_object_or_404(Manga, id=manga_pk)
-        text = serializer.validated_data['text']
-        manga.add_comment(self.request.user, text)
-
-class ChapterCommentViewSet(viewsets.ModelViewSet):
-    serializer_class = CommentSerializer
-    permission_classes = [IsAuthenticated]
-
-    def get_queryset(self):
-        chapter_pk = self.kwargs['chapter_pk']
-        manga = Chapter.objects.get(pk=chapter_pk)
-        return manga.comments.all()
-
-    def perform_create(self, serializer):
-        chapter_id = self.kwargs['chapter_pk']  # Витягніть ID розділу з URL
-        chapter = get_object_or_404(Chapter, id=chapter_id)
-        text = serializer.validated_data['text']
-        chapter.add_comment(self.request.user, text)
-
-class CommentUpdateView(generics.UpdateAPIView):
-    queryset = Comment.objects.all()
-    serializer_class = CommentSerializerUpdate
-    permission_classes = [IsAuthenticated]
-
-
-class CommentDeleteView(generics.DestroyAPIView):
-    queryset = Comment.objects.all()
-    permission_classes = [IsAuthenticated]
-
-
-
-
-
-
-
+from rest_framework import viewsets
+from .permissions import IsOwnerOrReadOnly
+from .serializers import CommentGetSerializer, CommentSerializer
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
-
-@api_view(['POST'])
-@permission_classes([IsAuthenticated])
-def add_manga_to_list(request):
-    user = request.user
-    manga_id = request.data.get('manga_id')
-    name = request.data.get('name')
-
-    manga = Manga.objects.get(pk=manga_id)
-    manga_list, created = MangaList.objects.get_or_create(user=user, manga=manga, defaults={'name': name})
-
-    if not created:
-        manga_list.name = name
-        manga_list.save()
-
-    return Response({'message': 'Manga added to the list successfully.'})
+from rest_framework import generics
+from .models import Comment
 
 
-@api_view(['POST'])
-@permission_classes([IsAuthenticated])
-def remove_manga_from_list(request):
-    user = request.user
-    manga_id = request.data.get('manga_id')
+class CommentViewSet(viewsets.ModelViewSet):
+    queryset = Comment.objects.all()
+    serializer_class = CommentSerializer
+    permission_classes = [IsAuthenticated, IsOwnerOrReadOnly]
 
-    manga = Manga.objects.get(pk=manga_id)
-    manga_list = MangaList.objects.filter(user=user, manga=manga).first()
-
-    if manga_list:
-        manga_list.delete()
-        return Response({'message': 'Manga removed from the list successfully.'})
-    else:
-        return Response({'message': 'Manga was not found in the list.'})
-
-
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
 
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def user_manga_list(request):
     user = request.user
+    print(user)
     manga_list = MangaList.objects.filter(user=user)
     serialized_data = MangaListSerializer(manga_list, many=True)  # Замініть на свій серіалайзер
     return Response(serialized_data.data)
 
 
+class MangaCommentsView(generics.ListCreateAPIView):
+    serializer_class = CommentGetSerializer
 
+    def get_queryset(self):
+        manga_slug = self.kwargs['slug']  # Відповідний атрибут ім'я з urls.py
+        return Comment.objects.filter(manga__slug=manga_slug)
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+
+
+from rest_framework import generics
+
+
+class ChapterCommentsView(generics.ListAPIView):
+    serializer_class = CommentGetSerializer
+
+    def get_queryset(self):
+        chapter_slug = self.kwargs['chapter_slug']
+        return Comment.objects.filter(chapter__slug=chapter_slug)
+
+
+from rest_framework import viewsets, status
+from rest_framework.response import Response
+from .models import MangaRating
+from .serializers import MangaRatingSerializer
+
+class MangaRatingViewSet(viewsets.ModelViewSet):
+    queryset = MangaRating.objects.all()
+    serializer_class = MangaRatingSerializer
+
+    def create(self, request, *args, **kwargs):
+        manga_id = request.data.get('manga')
+        user_id = request.data.get('user')
+        existing_rating = MangaRating.objects.filter(manga=manga_id, user=user_id).first()
+
+        if existing_rating:
+            serializer = self.get_serializer(existing_rating, data=request.data)
+            serializer.is_valid(raise_exception=True)
+            self.perform_update(serializer)
+            return Response(serializer.data)
+
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
+        headers = self.get_success_headers(serializer.data)
+        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+    def perform_create(self, serializer):
+        print(self.request.user)
+        serializer.save(user=self.request.user)

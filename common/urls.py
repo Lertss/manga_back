@@ -1,22 +1,18 @@
 from django.urls import path, include
 from rest_framework import routers
 
-from common.views import MangaCommentViewSet, ChapterCommentViewSet, CommentUpdateView, CommentDeleteView
+from common.views import CommentViewSet, MangaCommentsView, ChapterCommentsView, MangaRatingViewSet
 from django.urls import path
-
 
 router = routers.DefaultRouter()
 
-router.register(r'mangas/(?P<manga_pk>\d+)', MangaCommentViewSet, basename='mangacomment')
-router.register(r'chapters/(?P<chapter_pk>\d+)', ChapterCommentViewSet, basename='chapteracomment')
+
+router.register(r'comments', CommentViewSet)
+router.register(r'manga-ratings', MangaRatingViewSet)
 
 urlpatterns = [
-
-    path('update/<int:pk>', CommentUpdateView.as_view(), name='comment-update'),
-    path('delete/<int:pk>', CommentDeleteView.as_view(), name='comment-delete'),
-    path('create/', include(router.urls)),
-
-
-
+    path('', include(router.urls)),
+    path('mangas/<slug:slug>/comments/', MangaCommentsView.as_view(), name='manga-comments'),
+    path('chapters/<slug:chapter_slug>/comments/', ChapterCommentsView.as_view(), name='chapter-comments'),
 
 ]
