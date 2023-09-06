@@ -64,8 +64,7 @@ class Manga(models.Model):
     category = models.ForeignKey(Category, on_delete=models.CASCADE, related_name='category')
     name_manga = models.CharField(_('name_manga'), max_length=100, blank=False)
     name_original = models.CharField(_('name_original'), max_length=100, blank=True)
-    english_only_field = models.CharField(max_length=255, unique=True, blank=False, validators=[
-        RegexValidator(r'^[a-zA-Z0-9]*$', 'Only alphanumeric characters are allowed.')])
+    english_only_field = models.CharField(max_length=255, unique=True, blank=False)
     author = models.ManyToManyField(Author, related_name='actors', blank=False)
     time_prod = models.DateTimeField(default=timezone.now)
     counts = models.ManyToManyField(Country, related_name='country', blank=False)
@@ -141,7 +140,7 @@ class Chapter(models.Model):
     manga = models.ForeignKey(Manga, on_delete=models.CASCADE, related_name='chapters')
     title = models.CharField(_('title'), max_length=100, blank=True)
     chapter_number = models.IntegerField(_('chapter_number'), blank=False)
-    volume = models.IntegerField(_('chapter_number'), blank=False)
+    volume = models.IntegerField(_('volume'), blank=False)
     time_prod = models.DateTimeField(default=timezone.now)
     slug = models.SlugField(null=False, unique=True)
 
@@ -152,7 +151,7 @@ class Chapter(models.Model):
         return self.time_prod.strftime("%m/%d/%Y")
 
     def save(self, *args, **kwargs):
-        self.slug = slugify(f"{self.manga.english_only_field}-{self.chapter_number}")
+        self.slug = slugify(f"{self.manga.english_only_field}-{self.volume}-{self.chapter_number}")
         super().save(*args, **kwargs)
 
 

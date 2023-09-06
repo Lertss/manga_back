@@ -4,6 +4,7 @@ from rest_framework import serializers
 from .models import Chapter, Page
 
 
+
 class AuthorSerializer(serializers.ModelSerializer):
     class Meta:
         model = Author
@@ -47,6 +48,7 @@ class MangaLastSerializer(serializers.ModelSerializer):
     class Meta:
         model = Manga
         fields = [
+            'id',
             'name_manga',
             'name_original',
             'english_only_field',
@@ -158,6 +160,7 @@ class MangaSerializer(serializers.ModelSerializer):
                   'average_rating',
                   'category_title',
                   'get_absolute_url',
+
                   )
 
     def get_average_rating(self, obj):
@@ -165,6 +168,8 @@ class MangaSerializer(serializers.ModelSerializer):
 
     def get_category_title(self, obj):
         return obj.category.cat_name
+
+
 
 class MangaListSerializer(serializers.ModelSerializer):
     manga = MangaLastSerializer()
@@ -208,6 +213,18 @@ class LastChapterSerializer(serializers.ModelSerializer):
         model = Chapter
         fields = (
                   'title',
+                  'volume',
+                  'chapter_number',
+                  'data_g',
+                  'slug',
+        )
+
+class ChapterNotificationSerializer(serializers.ModelSerializer):
+    manga = MangaLastSerializer( read_only=True)
+    class Meta:
+        model = Chapter
+        fields = (
+                  'manga',
                   'volume',
                   'chapter_number',
                   'data_g',

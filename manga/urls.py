@@ -25,6 +25,7 @@ urlpatterns = [
     path('add-manga-list/', views.add_manga_to_list, name='add-manga'),
     path('remove-manga-list/', views.remove_manga_from_list, name='remove-manga'),
     path('user-manga-list/', views.user_manga_list, name='user-manga-list'),
+    path('manga_in_user_list/<str:manga_slug>/', views.manga_in_user_list),
 
     path('last-chapters/', views.last_hundred_chapters, name='get_last_chapters'),
 

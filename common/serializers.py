@@ -13,6 +13,40 @@ class CommentSerializer(serializers.ModelSerializer):
             'chapter',
             'content'
         ]
+
+
+class CommentUserPageSerializer(serializers.ModelSerializer):
+    manga_name = serializers.SerializerMethodField()
+    manga_url = serializers.SerializerMethodField()
+    chapter_name = serializers.SerializerMethodField()
+    chapter_url = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Comment
+        fields = [
+            'manga',
+            'manga_name',
+            'manga_url',
+            'chapter',
+            'chapter_name',
+            'chapter_url',
+            'content',
+        ]
+
+    def get_manga_name(self, obj):
+        return obj.manga.name_manga if obj.manga else None
+
+    def get_manga_url(self, obj):
+        return obj.manga.get_absolute_url() if obj.manga else None
+
+    def get_chapter_name(self, obj):
+        return obj.chapter.chapter_number if obj.chapter else None
+
+    def get_chapter_url(self, obj):
+        return obj.chapter.slug if obj.chapter else None
+
+
+
 class CustomUserComentsSerializer(serializers.ModelSerializer):
 
     class Meta:

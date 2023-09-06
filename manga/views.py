@@ -264,7 +264,7 @@ class MangaUpdateView(RetrieveUpdateAPIView):
 class AuthorViewSet(viewsets.ModelViewSet):
     queryset = Author.objects.all()
     serializer_class = AuthorSerializer
-
+    permission_classes = [IsAuthenticated]
 
 class AllFilter(APIView):
     def get(self, request, format=None):
@@ -306,14 +306,28 @@ class ChapterViewSet(viewsets.ModelViewSet):
     lookup_field = 'slug'
     permission_classes = [IsAuthenticated]
 
+
+
     def create(self, request, *args, **kwargs):
         pages_data = request.data.pop('image', [])
         numb = request.data.pop('page_number', [])
+
+        # Отримайте slug манги з запиту
+        manga_slug = request.data.get('manga', None)
+        if manga_slug:
+            # Отримайте об'єкт манги на основі slug
+            manga = get_object_or_404(Manga, slug=manga_slug)
+        else:
+            return Response({'manga': 'This field is required.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Додайте мангу до даних запиту
+        request.data['manga'] = manga.id
+
         serializer = self.get_serializer(data=request.data)
+
         serializer.is_valid(raise_exception=True)
         self.perform_create(serializer)
         chapter_instance = serializer.instance
-        print(chapter_instance)  # Отримати створений екземпляр розділу
         for image, page_number in zip(pages_data, numb):
             Page.objects.create(chapter=chapter_instance, image=image, page_number=page_number)
 
@@ -398,10 +412,10 @@ from rest_framework.response import Response
 @permission_classes([IsAuthenticated])
 def add_manga_to_list(request):
     user = request.user
-    manga_id = request.data.get('manga_id')
+    slug = request.data.get('slug')  # Отримуємо slug з запиту замість id
     name = request.data.get('name')
 
-    manga = Manga.objects.get(pk=manga_id)
+    manga = Manga.objects.get(slug=slug)  # Знаходимо мангу за її slug
     manga_list, created = MangaList.objects.get_or_create(user=user, manga=manga, defaults={'name': name})
 
     if not created:
@@ -411,13 +425,15 @@ def add_manga_to_list(request):
     return Response({'message': 'Manga added to the list successfully.'})
 
 
+
+
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def remove_manga_from_list(request):
     user = request.user
-    manga_id = request.data.get('manga_id')
+    slug = request.data.get('slug')  # Отримуємо slug замість id
+    manga = Manga.objects.get(slug=slug)  # Знаходимо мангу за її slug
 
-    manga = Manga.objects.get(pk=manga_id)
     manga_list = MangaList.objects.filter(user=user, manga=manga).first()
 
     if manga_list:
@@ -427,6 +443,18 @@ def remove_manga_from_list(request):
         return Response({'message': 'Manga was not found in the list.'})
 
 
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def manga_in_user_list(request, manga_slug):
+    user = request.user
+    manga = Manga.objects.get(slug=manga_slug)
+    manga_list = MangaList.objects.filter(user=user, manga=manga).first()
+
+    if manga_list:
+        return Response({'in_list': True, 'list_name': manga_list.name})
+    else:
+        return Response({'in_list': False})
 
 
 @api_view(['GET'])
@@ -482,19 +510,15 @@ class TopMangaCommentsView(APIView):
 
 
 import random
-from rest_framework.response import Response
 from rest_framework.views import APIView
-from .models import Manga
-from .serializers import MangaLastSerializer
+
 
 class RandomMangaView(APIView):
     def get(self, request, format=None):
         all_manga = list(Manga.objects.all())
-        random_manga = random.sample(all_manga, 2)
+        random_manga = random.sample(all_manga, 3)
         serializer = MangaRandomSerializer(random_manga, many=True)
         return Response(serializer.data)
-
-
 
 
 from rest_framework.response import Response

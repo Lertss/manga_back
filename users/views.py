@@ -35,16 +35,7 @@ class OtherUserDetailView(generics.RetrieveAPIView):
     queryset = CustomUser.objects.all()
     serializer_class = CustomUserDetailsSerializer
     lookup_field = 'slug'  # Додайте це поле
-    # def retrieve(self, request, *args, **kwargs):
-    #     instance = self.get_object()
-    #     serializer = self.get_serializer(instance)
-    #
-    #     Отримати коментарі користувача та додати їх до відповіді
-    #     comments = CommentSerializer(instance.comments.all(), many=True).data
-    #     data = serializer.data
-    #     data['comments'] = comments
-    #
-    #     return Response(data)
+
 
 
 from rest_framework.views import APIView
@@ -96,21 +87,6 @@ class AvatarUpdateView(generics.UpdateAPIView):
     def get_object(self):
         return self.request.user
 
-
-# class EmailUpdateView(generics.UpdateAPIView):
-#     serializer_class = EmailUpdateSerializer
-#     permission_classes = [IsAuthenticated]
-#
-#     def get_object(self):
-#         return self.request.user
-# users/views.py
-
-# users/views.py
-    """
-    запити відправляються так: 
-    {
-   "new_email": "new@example.com"
- }"""
 from allauth.account.models import EmailAddress
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
@@ -173,14 +149,28 @@ from rest_framework.response import Response
 from .models import Notification
 from .serializers import NotificationSerializer
 
-class NotificationListView(generics.ListAPIView):
+class NotificationListProfileView(generics.ListAPIView):
     serializer_class = NotificationSerializer
     permission_classes = [IsAuthenticated]
     def get_queryset(self):
         user = self.request.user
         return Notification.objects.filter(user=user)
 
-class NotificationDetailView(generics.RetrieveDestroyAPIView):
-    queryset = Notification.objects.all()
+class NotificationListView(generics.ListAPIView):
     serializer_class = NotificationSerializer
     permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        user = self.request.user
+        return Notification.objects.filter(user=user, is_read=False)
+
+
+
+class UpdateNotificationIsReadView(generics.UpdateAPIView):
+    serializer_class = NotificationSerializer
+    permission_classes = [IsAuthenticated]
+    queryset = Notification.objects.all()
+
+    def perform_update(self, serializer):
+        serializer.instance.is_read = True
+        serializer.save()

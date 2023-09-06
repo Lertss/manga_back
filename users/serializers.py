@@ -1,8 +1,11 @@
 from dj_rest_auth.registration.serializers import RegisterSerializer
 from rest_framework import serializers
 
-
-from manga.serializers import MangaListSerializer, ChapterSerializer
+from common.models import Comment
+from common.serializers import CustomUserComentsSerializer, CommentGetSerializer, CommentSerializer, \
+    CommentUserPageSerializer
+from manga.serializers import MangaListSerializer, ChapterSerializer, ChapterViewsMangaSerializer, \
+    ChapterNotificationSerializer
 from users.models import GENDER_SELECTION, CustomUser
 from .models import Notification
 
@@ -21,6 +24,7 @@ class CustomRegisterSerializer(RegisterSerializer):
 
 class CustomUserDetailsSerializer(serializers.ModelSerializer):
     list_manga = MangaListSerializer(many=True, read_only=True)
+    comments = serializers.SerializerMethodField()
 
     class Meta:
         model = CustomUser
@@ -32,7 +36,13 @@ class CustomUserDetailsSerializer(serializers.ModelSerializer):
             'gender',
             'get_avatar',
             'list_manga',
+            'comments'
         )
+
+    def get_comments(self, obj):
+        comments = Comment.objects.filter(user=obj)
+        return CommentUserPageSerializer(comments, many=True).data
+
 
 class CustomUserLastDetailsSerializer(serializers.ModelSerializer):
     class Meta:
@@ -68,10 +78,11 @@ class EmailUpdateSerializer(serializers.ModelSerializer):
 
 
 class NotificationSerializer(serializers.ModelSerializer):
-    chapter = ChapterSerializer(read_only=True)
+    chapter = ChapterNotificationSerializer(read_only=True)
 
     class Meta:
         model = Notification
-        fields = ('chapter',
+        fields = ('id',
+                  'chapter',
                   'created_at',
                   'is_read')
