@@ -8,16 +8,8 @@ admin.site.register(models.Genre)
 
 admin.site.register(models.Tag)
 admin.site.register(models.Manga)
-
-
-class GalleryAdm(admin.TabularInline):
-    fk_name = 'chapter'
-    model = models.Gallery
-
-
-@admin.register(models.Chapter)
-class ChapterAdmin(admin.ModelAdmin):
-    inlines = [GalleryAdm, ]
+admin.site.register(models.Chapter)
+admin.site.register(models.Page)
 
 
 class MangaAdm(admin.TabularInline):

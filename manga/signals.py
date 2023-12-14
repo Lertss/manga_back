@@ -4,6 +4,7 @@ from manga.models import Chapter
 from users.models import MangaList
 from users.models import Notification
 
+
 @receiver(post_save, sender=Chapter)
 def create_notification(sender, instance, created, **kwargs):
     if created:

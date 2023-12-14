@@ -1,5 +1,6 @@
 from allauth.account.adapter import DefaultAccountAdapter
 
+
 class CustomAccountURL(DefaultAccountAdapter):
 
     def get_email_confirmation_url(self, request, emailconfirmation):
