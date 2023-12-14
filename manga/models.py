@@ -1,20 +1,16 @@
 from __future__ import unicode_literals
 
-from django.contrib.contenttypes.fields import GenericRelation
-from django.core.validators import RegexValidator
-from django.db.models import Avg
-from django.db.models.signals import pre_save
-from django.dispatch import receiver
-from django.utils import timezone
-from django.contrib.auth.models import PermissionsMixin
-from django.contrib.auth.base_user import AbstractBaseUser
-from django.utils.translation import gettext_lazy as _
 from io import BytesIO
-from PIL import Image
-from django.core.files import File
-from django.utils.text import slugify
-from django.db import models
 
+from PIL import Image
+from django.contrib.auth.base_user import AbstractBaseUser
+from django.contrib.auth.models import PermissionsMixin
+from django.core.files import File
+from django.db import models
+from django.db.models import Avg
+from django.utils import timezone
+from django.utils.text import slugify
+from django.utils.translation import gettext_lazy as _
 
 from manga_back.constants import MANGA_GENRES, MANGA_TAGS, COUNTRY_CHOICES, CATEGORY_CHOICES
 
@@ -108,8 +104,6 @@ class Manga(models.Model):
             else:
                 return ''
 
-
-
     def make_thumbnail(self, avatar):
         img = Image.open(avatar)
         img = img.resize((120, 170))
@@ -124,16 +118,6 @@ class Manga(models.Model):
         if not self.slug:
             self.slug = f'{slugify(self.english_only_field)}'
         super().save(*args, **kwargs)
-
-
-
-
-from django.db import models
-from PIL import Image
-from io import BytesIO
-from django.core.files import File
-from django.utils.text import slugify
-from django.utils.translation import gettext_lazy as _
 
 
 class Chapter(models.Model):
@@ -155,9 +139,8 @@ class Chapter(models.Model):
         super().save(*args, **kwargs)
 
 
-
 class Page(models.Model):
-    chapter = models.ForeignKey(Chapter, on_delete=models.CASCADE, related_name='pages')  # Зв'язок ForeignKey до Chapter
+    chapter = models.ForeignKey(Chapter, on_delete=models.CASCADE, related_name='pages')  # r
     image = models.ImageField(upload_to='media/manga/pages/')
     page_number = models.PositiveIntegerField(_('page_number'))
 

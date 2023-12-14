@@ -12,8 +12,6 @@ admin.site.register(models.Chapter)
 admin.site.register(models.Page)
 
 
-
-
 class MangaAdm(admin.TabularInline):
     fk_name = 'category'
     model = models.Manga

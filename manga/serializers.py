@@ -4,7 +4,6 @@ from rest_framework import serializers
 from .models import Chapter, Page
 
 
-
 class AuthorSerializer(serializers.ModelSerializer):
     class Meta:
         model = Author
@@ -33,7 +32,6 @@ class TagsSerializer(serializers.ModelSerializer):
 
 
 class CategorySerializer(serializers.ModelSerializer):
-
     class Meta:
         model = Category
         fields = ("id",
@@ -73,6 +71,7 @@ class MangaRandomSerializer(serializers.ModelSerializer):
     thumbnail = serializers.SerializerMethodField()
     url = serializers.SerializerMethodField()
     category_title = serializers.SerializerMethodField()
+
     class Meta:
         model = Manga
         fields = [
@@ -170,7 +169,6 @@ class MangaSerializer(serializers.ModelSerializer):
         return obj.category.cat_name
 
 
-
 class MangaListSerializer(serializers.ModelSerializer):
     manga = MangaLastSerializer()
 
@@ -194,7 +192,7 @@ class PageSerializer(serializers.ModelSerializer):
 
 
 class ChapterSerializer(serializers.ModelSerializer):
-    pages = PageSerializer(many=True, required=False)  # Додайте required=False
+    pages = PageSerializer(many=True, required=False)
 
     class Meta:
         model = Chapter
@@ -208,25 +206,26 @@ class ChapterSerializer(serializers.ModelSerializer):
 
 
 class LastChapterSerializer(serializers.ModelSerializer):
-
     class Meta:
         model = Chapter
         fields = (
-                  'title',
-                  'volume',
-                  'chapter_number',
-                  'data_g',
-                  'slug',
+            'title',
+            'volume',
+            'chapter_number',
+            'data_g',
+            'slug',
         )
 
+
 class ChapterNotificationSerializer(serializers.ModelSerializer):
-    manga = MangaLastSerializer( read_only=True)
+    manga = MangaLastSerializer(read_only=True)
+
     class Meta:
         model = Chapter
         fields = (
-                  'manga',
-                  'volume',
-                  'chapter_number',
-                  'data_g',
-                  'slug',
+            'manga',
+            'volume',
+            'chapter_number',
+            'data_g',
+            'slug',
         )

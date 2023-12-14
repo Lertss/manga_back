@@ -25,7 +25,7 @@ SECRET_KEY = 'django-insecure-wb42+3q#&z210kfz8x2g32kkllrzywsc1%992-2&0l2jt5$=u-
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['127.0.0.1']
+ALLOWED_HOSTS = ['127.0.0.1', 'localhost']
 
 # Application definition
 
@@ -65,6 +65,7 @@ CORS_ALLOWED_ORIGIN_REGEXES = [
 ]
 
 MIDDLEWARE = [
+    'allauth.account.middleware.AccountMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'corsheaders.middleware.CorsMiddleware',
@@ -127,7 +128,7 @@ AUTH_PASSWORD_VALIDATORS = [
 # Internationalization
 # https://docs.djangoproject.com/en/4.2/topics/i18n/
 
-LANGUAGE_CODE = 'en-us'
+LANGUAGE_CODE = 'UK-uk'
 
 TIME_ZONE = 'UTC'
 
@@ -155,8 +156,8 @@ AUTH_USER_MODEL = 'users.CustomUser'
 REST_AUTH = {
     'SESSION_LOGIN': False,
     'USE_JWT': True,
-    'JWT_AUTH_COOKIE': 'auth',  # JWT токен буде зберігатися в цьому кукі
-    'JWT_AUTH_REFRESH_COOKIE': 'refreshToken',  # REFRESH токен буде зберігатися в цьому кукі
+    'JWT_AUTH_COOKIE': 'auth',  # The JWT token will be stored in this cookie
+    'JWT_AUTH_REFRESH_COOKIE': 'refreshToken',  # REFRESH token will be stored in this cookie
     'JWT_AUTH_HTTPONLY': False,
     'PASSWORD_RESET_USE_SITES_DOMAIN': True,
     'JWT_AUTH_RETURN_EXPIRATION': True

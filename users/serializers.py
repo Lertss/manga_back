@@ -2,10 +2,8 @@ from dj_rest_auth.registration.serializers import RegisterSerializer
 from rest_framework import serializers
 
 from common.models import Comment
-from common.serializers import CustomUserComentsSerializer, CommentGetSerializer, CommentSerializer, \
-    CommentUserPageSerializer
-from manga.serializers import MangaListSerializer, ChapterSerializer, ChapterViewsMangaSerializer, \
-    ChapterNotificationSerializer
+from common.serializers import CommentUserPageSerializer
+from manga.serializers import MangaListSerializer, ChapterNotificationSerializer
 from users.models import GENDER_SELECTION, CustomUser
 from .models import Notification
 

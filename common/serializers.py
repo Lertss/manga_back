@@ -1,8 +1,8 @@
 from rest_framework import serializers
-
 from manga.models import Manga
 from users.models import CustomUser
 from .models import Comment
+from .models import MangaRating
 
 
 class CommentSerializer(serializers.ModelSerializer):
@@ -46,9 +46,7 @@ class CommentUserPageSerializer(serializers.ModelSerializer):
         return obj.chapter.slug if obj.chapter else None
 
 
-
 class CustomUserComentsSerializer(serializers.ModelSerializer):
-
     class Meta:
         model = CustomUser
         fields = (
@@ -56,8 +54,10 @@ class CustomUserComentsSerializer(serializers.ModelSerializer):
             'slug'
         )
 
+
 class CommentGetSerializer(serializers.ModelSerializer):
     user = CustomUserComentsSerializer()
+
     class Meta:
         model = Comment
         fields = [
@@ -65,10 +65,6 @@ class CommentGetSerializer(serializers.ModelSerializer):
             'user',
             'content'
         ]
-
-
-from rest_framework import serializers
-from .models import MangaRating
 
 
 class MangaRatingSerializer(serializers.ModelSerializer):
@@ -84,13 +80,13 @@ class MangaRatingSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         user = self.context['request'].user
-        manga_slug = self.context['request'].data['manga_slug']  # Припустимо, що дані надходять в запиті
+        manga_slug = self.context['request'].data['manga_slug']  # Suppose that the data comes in a request
         manga = Manga.objects.get(slug=manga_slug)
 
-        # Перевірка чи оцінка вже існує для цього користувача та манги
+        # Check whether a rating already exists for this user and manga
         existing_rating = MangaRating.objects.filter(user=user, manga=manga).first()
         if existing_rating:
-            # Якщо оцінка вже існує, просто оновлюємо її
+            # If the assessment already exists, just update it
             existing_rating.rating = validated_data['rating']
             existing_rating.save()
             return existing_rating

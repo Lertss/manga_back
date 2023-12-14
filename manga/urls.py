@@ -30,7 +30,6 @@ urlpatterns = [
     path('last-chapters/', views.last_hundred_chapters, name='get_last_chapters'),
 
 
-    path('home/', views.MangaListHome.as_view()),
     path('allManga/', views.AllManga.as_view(), name='all_manga'),
     path('<slug:manga_slug>/<slug:chapter_slug>/', views.ShowChapter.as_view()),
     path('<slug:manga_slug>/', views.ShowManga.as_view()),

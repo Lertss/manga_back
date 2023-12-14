@@ -18,7 +18,7 @@
       <excludeFolder url="file://$MODULE_DIR$/venvdev" />
       <excludeFolder url="file://$MODULE_DIR$/venvr" />
     </content>
-    <orderEntry type="jdk" jdkName="Python 3.11 (manga_back)" jdkType="Python SDK" />
+    <orderEntry type="jdk" jdkName="Python 3.12 (manga_back)" jdkType="Python SDK" />
     <orderEntry type="sourceFolder" forTests="false" />
   </component>
   <component name="TemplatesService">

@@ -1,43 +1,33 @@
 import json
+import random
+from datetime import datetime, timedelta
+
+from django.db.models import Count
 from django.http import Http404
+from rest_framework import filters
+from rest_framework import generics
+from rest_framework import status
+from rest_framework import viewsets
 from rest_framework.decorators import action
-from rest_framework.views import APIView
-from rest_framework.generics import RetrieveUpdateAPIView, get_object_or_404
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.generics import get_object_or_404
+from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+from rest_framework.views import APIView
+
 from common.models import Comment
 from .serializers import *
-
-#What
-class MangaListHome(APIView):
-    def get(self, request, format=None):
-        manga = Manga.objects.all()
-        serializer_all = MangaSerializer(manga, many=True)
-        last_manga = Manga.objects.order_by('-time_prod')[:10]
-        serializer_lastmanga = MangaSerializer(last_manga, many=True)
-        last_chapter = Chapter.objects.all()
-        #
-        serializer_chapter = ChapterSerializer(last_chapter, many=True)
-
-        serializer = {'last_manga': serializer_lastmanga.data,'all': serializer_all.data, 'chapter': serializer_chapter.data}
-        return Response(serializer)
-
-
-
-
-
-
-from rest_framework import generics
-from rest_framework import viewsets, filters
-from .models import Manga
-from .serializers import MangaSerializer  # Додайте імпорт вашого серіалізатора
+from .serializers import MangaSerializer
 
 
 class AllManga(generics.ListAPIView):
     filter_backends = (filters.OrderingFilter,)
     serializer_class = MangaSerializer
     ordering_fields = ['name_manga', 'time_prod']
+
     def get_queryset(self):
-        # Отримуємо параметри запиту 'genres', 'category','counts' і 'tags'
+        # Get the query parameters 'genres', 'category', 'counts' and 'tags'
         genres = self.request.query_params.getlist('genres')
         tags = self.request.query_params.getlist('tags')
         counts = self.request.query_params.getlist('counts')
@@ -61,28 +51,22 @@ class AllManga(generics.ListAPIView):
             'countries': 'counts__counts',
             'categories': 'category__cat_name'
         }
-        # Виключаємо за допомогою циклу
+        # We exclude with a loop
         for param, model_field in filter_params.items():
             excluded_values = self.request.query_params.getlist('exclude_' + param)
-            print(str(excluded_values))
-            # print(f'param: {param}, model_field: {model_field}, excluded_values: {excluded_values}')
             if excluded_values:
                 queryset = queryset.exclude(**{model_field + '__in': excluded_values})
-
-            print(queryset)
-        # Фільтруємо за полем decency
+        # Filter by decency field
         decency = self.request.query_params.get('decency')
         if decency in ['true', 'false']:
             queryset = queryset.filter(decency=(decency == 'true'))
 
         if min_rating is not None:
             min_rating = int(min_rating)
-            # Фільтруємо мангу з середнім рейтингом більше або рівним min_rating
+            # Filter manga with an average rating greater than or equal to min_rating
             queryset = queryset.annotate(avg_rating=Avg('ratings__rating')).filter(avg_rating__gte=min_rating)
 
         return queryset
-
-
 
 
 class Search(viewsets.ModelViewSet):
@@ -90,8 +74,6 @@ class Search(viewsets.ModelViewSet):
     serializer_class = MangaLastSerializer
     filter_backends = (filters.SearchFilter,)
     search_fields = ['name_manga', 'name_original', 'english_only_field']
-
-
 
 
 class ShowManga(APIView):
@@ -107,14 +89,6 @@ class ShowManga(APIView):
         return Response(serializer.data)
 
 
-# class ShowManga(APIView):
-#     def get(self):
-#         id = 1
-#         person = Manga.objects.get(pk=id)
-#         serializer = MangaSerializer(person, many=True)
-#         return Response(serializer.data)
-
-
 class MangaViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
     queryset = Manga.objects.all()
@@ -128,14 +102,14 @@ class MangaViewSet(viewsets.ModelViewSet):
 
         if category_ids is not None:
             try:
-                # Отримайте екземпляр категорії за допомогою ID та оновіть поле категорії
+                # Get a category instance using ID and update the category field
                 category_instance = Category.objects.get(id=category_ids)
                 instance.category = category_instance
                 instance.save()
-                return Response({'message': 'Категорію успішно оновлено.'})
+                return Response({'message': 'The category has been successfully updated.'})
             except Category.DoesNotExist:
-                return Response({'error': 'Категорія не знайдена.'}, status=status.HTTP_400_BAD_REQUEST)
-        return Response({'error': "Поле \'category\' є обов\'язковим."}, status=status.HTTP_400_BAD_REQUEST)
+                return Response({'error': 'Category not found.'}, status=status.HTTP_400_BAD_REQUEST)
+        return Response({'error': "The  \'category\' field is required."}, status=status.HTTP_400_BAD_REQUEST)
 
     @action(detail=True, methods=['patch'], url_path='update-name-manga')
     def update_name_manga(self, request, slug=None):
@@ -172,8 +146,8 @@ class MangaViewSet(viewsets.ModelViewSet):
         instance = self.get_object()
         author_ids = request.data.getlist('author')
         if author_ids is not None:
-            instance.author.clear()  # Видалити існуючі записи авторів
-            instance.author.set(author_ids)  # Додати нові записи авторів
+            instance.author.clear()  # Delete existing author records
+            instance.author.set(author_ids)  # Add new entries by authors
             return Response({'message': 'Author updated successfully.'})
         return Response({'error': 'Author field is required.'}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -182,8 +156,8 @@ class MangaViewSet(viewsets.ModelViewSet):
         instance = self.get_object()
         counts_ids = request.data.getlist('counts')
         if counts_ids is not None:
-            instance.counts.clear()  # Видалити існуючі записи країн
-            instance.counts.add(*counts_ids)  # Додати нові записи країн
+            instance.counts.clear()  # Delete existing country records
+            instance.counts.add(*counts_ids)  # Add new country records
             return Response({'message': 'Counts updated successfully.'})
         return Response({'error': 'Counts field is required.'}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -207,8 +181,8 @@ class MangaViewSet(viewsets.ModelViewSet):
         instance = self.get_object()
         genre_ids = request.data.getlist('genre')
         if genre_ids is not None:
-            instance.genre.clear()  # Видалити існуючі записи жанрів
-            instance.genre.add(*genre_ids)  # Додати нові записи жанрів
+            instance.genre.clear()  # Delete existing genre entries
+            instance.genre.add(*genre_ids)  # Add new genre entries
             return Response({'message': 'Genre updated successfully.'})
         return Response({'error': 'Genre field is required.'}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -217,8 +191,8 @@ class MangaViewSet(viewsets.ModelViewSet):
         instance = self.get_object()
         tags_ids = request.data.getlist('tags')
         if tags_ids is not None:
-            instance.tags.clear()  # Видалити існуючі записи тегів
-            instance.tags.add(*tags_ids)  # Додати нові записи тегів
+            instance.tags.clear()  # Delete existing tag records
+            instance.tags.add(*tags_ids)  # Add new entries tags
             return Response({'message': 'Tags updated successfully.'})
         return Response({'error': 'Tags field is required.'}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -254,17 +228,11 @@ class MangaViewSet(viewsets.ModelViewSet):
             return Response({'error': 'Content field is required.'}, status=400)
 
 
-class MangaUpdateView(RetrieveUpdateAPIView):
-    queryset = Manga.objects.all()
-    serializer_class = MangaCreateUpdateSerializer
-    lookup_field = 'slug'
-    permission_classes = [IsAuthenticated]
-
-
 class AuthorViewSet(viewsets.ModelViewSet):
     queryset = Author.objects.all()
     serializer_class = AuthorSerializer
     permission_classes = [IsAuthenticated]
+
 
 class AllFilter(APIView):
     def get(self, request, format=None):
@@ -291,13 +259,6 @@ class AllFilter(APIView):
         return Response(data, status=status.HTTP_200_OK)
 
 
-from rest_framework import viewsets
-from rest_framework.parsers import MultiPartParser, FormParser
-from rest_framework.response import Response
-from rest_framework import status
-
-from .models import Chapter, Page
-from .serializers import ChapterSerializer, PageSerializer
 
 
 class ChapterViewSet(viewsets.ModelViewSet):
@@ -306,21 +267,19 @@ class ChapterViewSet(viewsets.ModelViewSet):
     lookup_field = 'slug'
     permission_classes = [IsAuthenticated]
 
-
-
     def create(self, request, *args, **kwargs):
         pages_data = request.data.pop('image', [])
         numb = request.data.pop('page_number', [])
 
-        # Отримайте slug манги з запиту
+        # Get manga slug from the request
         manga_slug = request.data.get('manga', None)
         if manga_slug:
-            # Отримайте об'єкт манги на основі slug
+            # Get a manga object based on a slug
             manga = get_object_or_404(Manga, slug=manga_slug)
         else:
             return Response({'manga': 'This field is required.'}, status=status.HTTP_400_BAD_REQUEST)
 
-        # Додайте мангу до даних запиту
+        # Add manga to the query data
         request.data['manga'] = manga.id
 
         serializer = self.get_serializer(data=request.data)
@@ -333,7 +292,6 @@ class ChapterViewSet(viewsets.ModelViewSet):
 
         headers = self.get_success_headers(serializer.data)
         return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
-
 
     @action(detail=True, methods=['patch'], url_path='update-title')
     def update_title(self, request, slug=None):
@@ -365,7 +323,7 @@ class ChapterViewSet(viewsets.ModelViewSet):
             return Response({'message': 'Chapter number updated successfully.'})
         return Response({'error': 'Chapter number field is required.'}, status=status.HTTP_400_BAD_REQUEST)
 
-    @action(detail=True, methods=['POST'],)
+    @action(detail=True, methods=['POST'], )
     def add_comment_to_chapter(self, request, slug=None):
         chapter = get_object_or_404(Chapter, slug=slug)
         content = request.data.get('content')
@@ -375,6 +333,7 @@ class ChapterViewSet(viewsets.ModelViewSet):
             return Response({'message': 'Comment added successfully.'}, status=201)
         else:
             return Response({'error': 'Content field is required.'}, status=400)
+
 
 class ShowChapter(APIView):  # ShowChapter
     def get_object(self, manga_slug, chapter_slug):
@@ -389,7 +348,6 @@ class ShowChapter(APIView):  # ShowChapter
         return Response(serializer.data)
 
 
-
 class PageViewSet(viewsets.ModelViewSet):
     queryset = Page.objects.all()
     serializer_class = PageSerializer
@@ -399,23 +357,14 @@ class PageViewSet(viewsets.ModelViewSet):
 
 
 
-
-
-
-
-from rest_framework.decorators import api_view, permission_classes
-from rest_framework.permissions import IsAuthenticated
-from rest_framework.response import Response
-
-
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def add_manga_to_list(request):
     user = request.user
-    slug = request.data.get('slug')  # Отримуємо slug з запиту замість id
+    slug = request.data.get('slug')  # Get slug from the request instead of id
     name = request.data.get('name')
 
-    manga = Manga.objects.get(slug=slug)  # Знаходимо мангу за її slug
+    manga = Manga.objects.get(slug=slug)  # Finding a manga by its slug
     manga_list, created = MangaList.objects.get_or_create(user=user, manga=manga, defaults={'name': name})
 
     if not created:
@@ -425,14 +374,12 @@ def add_manga_to_list(request):
     return Response({'message': 'Manga added to the list successfully.'})
 
 
-
-
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def remove_manga_from_list(request):
     user = request.user
-    slug = request.data.get('slug')  # Отримуємо slug замість id
-    manga = Manga.objects.get(slug=slug)  # Знаходимо мангу за її slug
+    slug = request.data.get('slug')  # We get slug instead of id
+    manga = Manga.objects.get(slug=slug)  # Finding a manga by its slug
 
     manga_list = MangaList.objects.filter(user=user, manga=manga).first()
 
@@ -441,7 +388,6 @@ def remove_manga_from_list(request):
         return Response({'message': 'Manga removed from the list successfully.'})
     else:
         return Response({'message': 'Manga was not found in the list.'})
-
 
 
 @api_view(['GET'])
@@ -462,16 +408,11 @@ def manga_in_user_list(request, manga_slug):
 def user_manga_list(request):
     user = request.user
     manga_list = MangaList.objects.filter(user=user)
-    serialized_data = MangaListSerializer(manga_list, many=True)  # Замініть на свій серіалайзер
+    serialized_data = MangaListSerializer(manga_list, many=True)
     return Response(serialized_data.data)
 
 
 
-from django.shortcuts import render
-from rest_framework.response import Response
-from rest_framework.views import APIView
-from .models import Manga
-from .serializers import MangaLastSerializer
 
 class TopMangaView(APIView):
     def get(self, request, format=None):
@@ -481,26 +422,17 @@ class TopMangaView(APIView):
 
 
 
-from rest_framework.response import Response
-from rest_framework.views import APIView
-from .models import Manga
-from .serializers import MangaLastSerializer
-from django.db.models import Avg, Q
-from datetime import datetime, timedelta
-from .models import Manga
+
 class TopMangaLastYearView(APIView):
     def get(self, request, format=None):
         last_year = datetime.now() - timedelta(days=365)
-        top_manga_last_year = Manga.objects.filter(time_prod__gte=last_year).annotate(avg_rating=Avg('ratings__rating')).order_by('-avg_rating')[:100]
+        top_manga_last_year = Manga.objects.filter(time_prod__gte=last_year).annotate(
+            avg_rating=Avg('ratings__rating')).order_by('-avg_rating')[:100]
         serializer = MangaLastSerializer(top_manga_last_year, many=True)
         return Response(serializer.data)
 
 
-from django.db.models import Count
-from rest_framework.response import Response
-from rest_framework.views import APIView
-from .models import Manga
-from .serializers import MangaLastSerializer
+
 
 class TopMangaCommentsView(APIView):
     def get(self, request, format=None):
@@ -509,26 +441,24 @@ class TopMangaCommentsView(APIView):
         return Response(serializer.data)
 
 
-import random
-from rest_framework.views import APIView
 
 
 class RandomMangaView(APIView):
     def get(self, request, format=None):
         all_manga = list(Manga.objects.all())
-        random_manga = random.sample(all_manga, 3)
+        if len(all_manga) < 2:
+            random_manga = [all_manga[0]] * 2
+        else:
+            random_manga = random.sample(all_manga, 2)
         serializer = MangaRandomSerializer(random_manga, many=True)
         return Response(serializer.data)
 
 
-from rest_framework.response import Response
-from rest_framework.decorators import api_view
-from .models import Chapter, Manga
-from .serializers import LastChapterSerializer, MangaLastSerializer
+
 
 @api_view(['GET'])
 def last_hundred_chapters(request):
-    # Отримати останні сто глав
+    # Get the last hundred chapters
     last_hundred_chapters = Chapter.objects.order_by('-id')[:100]
 
     chapter_data = []
@@ -536,11 +466,11 @@ def last_hundred_chapters(request):
         chapter_serializer = LastChapterSerializer(chapter)
         manga_serializer = MangaLastSerializer(chapter.manga)
 
-        # Отримати дані з серіалізаторів
+        # Get data from serializers
         serialized_chapter = chapter_serializer.data
         serialized_manga = manga_serializer.data
 
-        # Додати дані манги до даних глави
+        # Add manga data to chapter data
         serialized_chapter['manga'] = serialized_manga
 
         chapter_data.append(serialized_chapter)

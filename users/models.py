@@ -1,10 +1,8 @@
 import random
-
 from django.contrib.auth.models import AbstractUser
 from django.db import IntegrityError
 from django.db import models
 from django.utils.text import slugify
-
 from manga.models import Manga
 from manga_back.constants import GENDER_SELECTION, NAME_LIST_MANGA
 
@@ -16,7 +14,6 @@ class CustomUser(AbstractUser):
     slug = models.SlugField(null=False, unique=True)
     first_name = None
     last_name = None
-
 
     def get_absolute_url(self):
         return f'/{self.slug}/'
@@ -51,13 +48,11 @@ class MangaList(models.Model):
         unique_together = ['user', 'manga']
 
 
-
 class Notification(models.Model):
     user = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
     chapter = models.ForeignKey('manga.Chapter', on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now_add=True)
     is_read = models.BooleanField(default=False)
-
 
     class Meta:
         ordering = ['-created_at']

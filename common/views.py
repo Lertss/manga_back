@@ -1,14 +1,16 @@
-from manga.serializers import MangaListSerializer
-from users.models import MangaList
-from rest_framework import viewsets
-from .permissions import IsOwnerOrReadOnly
-from .serializers import CommentGetSerializer, CommentSerializer
+from rest_framework import generics
+from rest_framework import viewsets, status
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
-from rest_framework import generics
+from manga.serializers import MangaListSerializer
+from users.models import MangaList
 from .models import Comment
+from .models import MangaRating
+from .permissions import IsOwnerOrReadOnly
+from .serializers import CommentGetSerializer, CommentSerializer
+from .serializers import MangaRatingSerializer
 
 
 class CommentViewSet(viewsets.ModelViewSet):
@@ -24,9 +26,8 @@ class CommentViewSet(viewsets.ModelViewSet):
 @permission_classes([IsAuthenticated])
 def user_manga_list(request):
     user = request.user
-    print(user)
     manga_list = MangaList.objects.filter(user=user)
-    serialized_data = MangaListSerializer(manga_list, many=True)  # Замініть на свій серіалайзер
+    serialized_data = MangaListSerializer(manga_list, many=True)
     return Response(serialized_data.data)
 
 
@@ -34,14 +35,11 @@ class MangaCommentsView(generics.ListCreateAPIView):
     serializer_class = CommentGetSerializer
 
     def get_queryset(self):
-        manga_slug = self.kwargs['slug']  # Відповідний атрибут ім'я з urls.py
+        manga_slug = self.kwargs['slug']
         return Comment.objects.filter(manga__slug=manga_slug)
 
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
-
-
-from rest_framework import generics
 
 
 class ChapterCommentsView(generics.ListAPIView):
@@ -51,11 +49,6 @@ class ChapterCommentsView(generics.ListAPIView):
         chapter_slug = self.kwargs['chapter_slug']
         return Comment.objects.filter(chapter__slug=chapter_slug)
 
-
-from rest_framework import viewsets, status
-from rest_framework.response import Response
-from .models import MangaRating
-from .serializers import MangaRatingSerializer
 
 class MangaRatingViewSet(viewsets.ModelViewSet):
     queryset = MangaRating.objects.all()
@@ -77,6 +70,6 @@ class MangaRatingViewSet(viewsets.ModelViewSet):
         self.perform_create(serializer)
         headers = self.get_success_headers(serializer.data)
         return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+
     def perform_create(self, serializer):
-        print(self.request.user)
         serializer.save(user=self.request.user)

@@ -1,8 +1,9 @@
 from django.contrib.auth import get_user_model
+from django.contrib.auth.models import User
 from django.db import models
 
-
 from manga.models import Chapter, Manga
+from manga.models import Manga
 from users.models import CustomUser
 
 
@@ -19,15 +20,12 @@ class Comment(models.Model):
 
     def save(self, *args, **kwargs):
         if not self.pk:
-            self.user = self.user or get_user_model().objects.get(pk=self.user_id)  # Впевніться, що користувач встановлено
+            self.user = self.user or get_user_model().objects.get(pk=self.user_id)  # Make sure the user has installed
         super().save(*args, **kwargs)
+
     def __str__(self):
         return f"Comment by {self.user.username}"
 
-
-from django.db import models
-from django.contrib.auth.models import User
-from manga.models import Manga
 
 class MangaRating(models.Model):
     user = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
@@ -39,8 +37,7 @@ class MangaRating(models.Model):
     class Meta:
         unique_together = ('user', 'manga')
 
-
     def save(self, *args, **kwargs):
         if not self.pk:
-            self.user = self.user or get_user_model().objects.get(pk=self.user_id)  # Впевніться, що користувач встановлено
+            self.user = self.user or get_user_model().objects.get(pk=self.user_id)
         super().save(*args, **kwargs)
