@@ -1,6 +1,6 @@
 from django.contrib import admin
-
 from manga import models
+
 
 admin.site.register(models.Author)
 admin.site.register(models.Country)
@@ -13,10 +13,12 @@ admin.site.register(models.Page)
 
 
 class MangaAdm(admin.TabularInline):
-    fk_name = 'category'
+    fk_name = "category"
     model = models.Manga
 
 
 @admin.register(models.Category)
 class CategoryAdmin(admin.ModelAdmin):
-    inlines = [MangaAdm, ]
+    inlines = [
+        MangaAdm,
+    ]

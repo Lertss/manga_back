@@ -1,63 +1,52 @@
-from rest_framework import generics
-from rest_framework import viewsets, status
-from rest_framework.decorators import api_view, permission_classes
+from manga_back.service import data_acquisition_and_serialization
+from rest_framework import generics, status, viewsets
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
-from manga.serializers import MangaListSerializer
-from users.models import MangaList
-from .models import Comment
-from .models import MangaRating
+from .models import Comment, MangaRating
 from .permissions import IsOwnerOrReadOnly
-from .serializers import CommentGetSerializer, CommentSerializer
-from .serializers import MangaRatingSerializer
+from .serializers import CommentGetSerializer, CommentSerializer, MangaRatingSerializer
+from .service.service import comment_object_filter, mangarating_object_filter
 
 
 class CommentViewSet(viewsets.ModelViewSet):
-    queryset = Comment.objects.all()
-    serializer_class = CommentSerializer
+    """Interacting with comments"""
+
+    queryset, serializer_class = data_acquisition_and_serialization(Comment, CommentSerializer)
     permission_classes = [IsAuthenticated, IsOwnerOrReadOnly]
 
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
 
 
-@api_view(['GET'])
-@permission_classes([IsAuthenticated])
-def user_manga_list(request):
-    user = request.user
-    manga_list = MangaList.objects.filter(user=user)
-    serialized_data = MangaListSerializer(manga_list, many=True)
-    return Response(serialized_data.data)
-
-
 class MangaCommentsView(generics.ListCreateAPIView):
+    """Display comments to manga"""
+
     serializer_class = CommentGetSerializer
 
     def get_queryset(self):
-        manga_slug = self.kwargs['slug']
-        return Comment.objects.filter(manga__slug=manga_slug)
+        return comment_object_filter("manga", self.kwargs["slug"])
 
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
 
 
 class ChapterCommentsView(generics.ListAPIView):
+    """Display chapter comments"""
+
     serializer_class = CommentGetSerializer
 
     def get_queryset(self):
-        chapter_slug = self.kwargs['chapter_slug']
-        return Comment.objects.filter(chapter__slug=chapter_slug)
+        return comment_object_filter("chapter", self.kwargs["chapter_slug"])
 
 
 class MangaRatingViewSet(viewsets.ModelViewSet):
-    queryset = MangaRating.objects.all()
-    serializer_class = MangaRatingSerializer
+    """Interaction with the manga rating"""
+
+    queryset, serializer_class = data_acquisition_and_serialization(MangaRating, MangaRatingSerializer)
 
     def create(self, request, *args, **kwargs):
-        manga_id = request.data.get('manga')
-        user_id = request.data.get('user')
-        existing_rating = MangaRating.objects.filter(manga=manga_id, user=user_id).first()
+        existing_rating = mangarating_object_filter(request.data.get("manga"), request.data.get("user"))
 
         if existing_rating:
             serializer = self.get_serializer(existing_rating, data=request.data)
