@@ -63,20 +63,12 @@ class MangaLastSerializer(serializers.ModelSerializer):
         return representation
 
 
-class MangaRandomSerializer(serializers.ModelSerializer):
-    thumbnail = serializers.SerializerMethodField()
-    url = serializers.SerializerMethodField()
+class MangaRandomSerializer(MangaLastSerializer):
     category_title = serializers.SerializerMethodField()
 
     class Meta:
         model = Manga
         fields = ["name_manga", "review", "thumbnail", "url", "category_title"]
-
-    def get_thumbnail(self, obj):
-        return obj.get_thumbnail()
-
-    def get_url(self, obj):
-        return obj.get_absolute_url()
 
     def get_category_title(self, obj):
         return obj.category.cat_name

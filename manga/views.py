@@ -4,7 +4,7 @@ from rest_framework import filters, generics, status, viewsets
 from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.generics import get_object_or_404
 from rest_framework.parsers import FormParser, MultiPartParser
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnly
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
@@ -50,101 +50,25 @@ class ShowManga(APIView):
 
 
 class MangaViewSet(viewsets.ModelViewSet):
-    """Used with Django Rest Framework to handle create, read, update, and delete operations on the Manga model."""
+    """Handles CRUD operations on the Manga model."""
 
-    permission_classes = [IsAuthenticated]
-    queryset, serializer_class = data_acquisition_and_serialization(Manga, MangaCreateUpdateSerializer)
+    permission_classes = [IsAuthenticatedOrReadOnly]
+    queryset = Manga.objects.all()
+    serializer_class = MangaCreateUpdateSerializer
     lookup_field = "slug"
 
-    @action(detail=True, methods=["patch"], url_path="update-name-manga")
-    def update_name_manga(self, request, slug=None):
-        """Changing the name of a manga"""
-        return service.update_field_manga(self, request, "name_manga", "name_manga", "Manga title field is required")
+    def partial_update(self, request, *args, **kwargs):
+        """Handles PATCH requests for partial updates."""
+        return super().partial_update(request, *args, **kwargs)
 
-    @action(detail=True, methods=["patch"], url_path="update-name-original")
-    def update_name_original(self, request, slug=None):
-        """Changing the original manga title"""
-        return service.update_field_manga(
-            self, request, "name_original", "name_original", "Original name of the manga is required"
-        )
 
-    @action(detail=True, methods=["patch"], url_path="update-english-only-field")
-    def update_english_only_field(self, request, slug=None):
-        "" "Changing the English title of a manga" ""
-        return service.update_field_manga(
-            self, request, "english_only_field", "english_only_field", "English name of the manga is required"
-        )
-
-    @action(detail=True, methods=["patch"], url_path="update-review")
-    def update_review(self, request, slug=None):
-        """Change manga description"""
-        return service.update_field_manga(self, request, "review", "review", "Review field is required.")
-
-    @action(detail=True, methods=["patch"], url_path="update-author")
-    def update_author(self, request, slug=None):
-        """Change of manga author"""
-        instance = self.get_object()
-        return service.update_field_key_manga(self, instance, "author", "author", "Author updated successfully.")
-
-    @action(detail=True, methods=["patch"], url_path="update-counts")
-    def update_counts(self, request, slug=None):
-        """Changing the country of manga creation"""
-        instance = self.get_object()
-        return service.update_field_key_manga(self, instance, "counts", "counts", "Counts updated successfully.")
-
-    @action(detail=True, methods=["patch"], url_path="update-genre")
-    def update_genre(self, request, slug=None):
-        """Changing manga genres"""
-        instance = self.get_object()
-        return service.update_field_key_manga(self, instance, "genre", "genre", "Genre updated successfully.")
-
-    @action(detail=True, methods=["patch"], url_path="update-tags")
-    def update_tags(self, request, slug=None):
-        """Changing manga tags"""
-        instance = self.get_object()
-        return service.update_field_key_manga(self, instance, "tags", "tags", "Tags updated successfully.")
-
-    @action(detail=True, methods=["patch"], url_path="update-avatar")
-    def update_avatar(self, request, slug=None):
-        """Change manga image"""
-        instance = self.get_object()
-        avatar = request.data.get("avatar")
-        if avatar is not None:
-            instance.avatar = avatar
-            instance.save()
-            return Response({"message": "Avatar updated successfully."})
-        return Response({"error": "Avatar field is required."}, status=status.HTTP_400_BAD_REQUEST)
-
-    @action(detail=True, methods=["POST"])
-    def add_comment_to_manga(self, request, slug=None):
-        """Adding comments to a manga"""
-        content = request.data.get("content")
-        if content:
-            service.create_comment(request.user, manga=get_object_or_404(Manga, slug=slug), content=content)
-            return Response({"message": "Comment added successfully."}, status=201)
-        else:
-            return Response({"error": "Content field is required."}, status=400)
-
-    @action(detail=True, methods=["patch"], url_path="update-category")
-    def update_category(self, request, slug=None):
-        """Changing the manga category"""
-        instance = self.get_object()
-        category_id = request.data.get("category")
-        return service.update_category_field_manga(self, instance, category_id)
-
-    @action(detail=True, methods=["patch"], url_path="update-decency")
-    def update_decency(self, request, slug=None):
-        """Changing the age category of manga"""
-        instance = self.get_object()
-        decency = request.data.get("decency")
-        return service.update_decency_field_manga(self, instance, decency)
 
 
 class AuthorViewSet(viewsets.ModelViewSet):
     """Defines a viewset for CRUD operations on the Author model"""
 
     queryset, serializer_class = data_acquisition_and_serialization(Author, AuthorSerializer)
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticatedOrReadOnly]
 
 
 class AllFilter(APIView):
@@ -159,7 +83,7 @@ class ChapterViewSet(viewsets.ModelViewSet):
 
     queryset, serializer_class = data_acquisition_and_serialization(Chapter, ChapterSerializer)
     lookup_field = "slug"
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticatedOrReadOnly]
 
     def create(self, request, *args, **kwargs):
         """Overrides the standard create method to handle the creation of a new Chapter instance"""

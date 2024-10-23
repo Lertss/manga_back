@@ -62,7 +62,6 @@ CORS_ALLOWED_ORIGIN_REGEXES = [
 ]
 
 MIDDLEWARE = [
-    "allauth.account.middleware.AccountMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "corsheaders.middleware.CorsMiddleware",
