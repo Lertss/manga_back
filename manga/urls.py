@@ -9,7 +9,7 @@ router.register(r"authors", views.AuthorViewSet, basename="author")
 router.register(r"chapters", views.ChapterViewSet, basename="chapter")
 router.register(r"pages", views.PageViewSet, basename="page")
 router.register(r"manga", views.MangaViewSet, basename="manga")
-router.register(r"search", views.Search)
+router.register(r"search", views.Search, basename="search")
 
 
 urlpatterns = [
