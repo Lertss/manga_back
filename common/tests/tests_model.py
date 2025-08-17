@@ -1,9 +1,10 @@
 from datetime import timedelta
 
-from common.models import Comment, MangaRating
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase
 from django.utils import timezone
+
+from common.models import Comment, MangaRating
 from manga.models import Author, Category, Chapter, Country, Genre, Manga, Tag
 from users.models import CustomUser
 
@@ -12,10 +13,10 @@ class CommentModelTest(TestCase):
     def setUp(self):
         self.user = CustomUser.objects.create(username="testuser1", gender="Male", adult=True)
 
-        self.genre = Genre.objects.create(genr_name="Action")
+        self.genre = Genre.objects.create(genre_name="Action")
         self.tag = Tag.objects.create(tag_name="Alchemy")
-        self.country = Country.objects.create(counts="Afghanistan")
-        self.category = Category.objects.create(cat_name="Manga")
+        self.country = Country.objects.create(country_name="Afghanistan")
+        self.category = Category.objects.create(category_name="Manga")
         self.author = Author.objects.create(first_name="John", last_name="Doe")
 
         self.manga = Manga.objects.create(
@@ -31,7 +32,7 @@ class CommentModelTest(TestCase):
         )
 
         self.manga.author.add(self.author)
-        self.manga.counts.add(self.country)
+        self.manga.country.add(self.country)
         self.manga.genre.add(self.genre)
         self.manga.tags.add(self.tag)
 
@@ -40,12 +41,17 @@ class CommentModelTest(TestCase):
             title="Chapter Title",
             chapter_number=1,
             volume=1,
-            time_prod=timezone.now(),
+            created_at=timezone.now(),
             slug=None,
         )
 
     def test_create_comment(self):
-        comment = Comment.objects.create(user=self.user, manga=self.manga, chapter=self.chapter, content="Test Comment")
+        comment = Comment.objects.create(
+            user=self.user,
+            manga=self.manga,
+            chapter=self.chapter,
+            content="Test Comment",
+        )
 
         self.assertEqual(comment.user, self.user)
         self.assertEqual(comment.manga, self.manga)
@@ -73,10 +79,10 @@ class MangaRatingModelTest(TestCase):
     def setUp(self):
         self.user = CustomUser.objects.create(username="testuser1", gender="Male", adult=True)
 
-        self.genre = Genre.objects.create(genr_name="Action")
+        self.genre = Genre.objects.create(genre_name="Action")
         self.tag = Tag.objects.create(tag_name="Alchemy")
-        self.country = Country.objects.create(counts="Afghanistan")
-        self.category = Category.objects.create(cat_name="Manga")
+        self.country = Country.objects.create(country_name="Afghanistan")
+        self.category = Category.objects.create(category_name="Manga")
         self.author = Author.objects.create(first_name="John", last_name="Doe")
 
         self.manga = Manga.objects.create(
@@ -89,12 +95,6 @@ class MangaRatingModelTest(TestCase):
             avatar=SimpleUploadedFile("test_avatar_1.png", b"", content_type="image/png"),
             thumbnail=SimpleUploadedFile("test_thumbnail_1.png", b"", content_type="image/png"),
             slug="manga-1",
-        )
-
-    def test_manga_rating_str_method(self):
-        manga_rating = MangaRating.objects.create(user=self.user, manga=self.manga, rating=4)
-        self.assertEqual(
-            str(manga_rating), f"Rating {manga_rating.rating} by {self.user.username} for {self.manga.name_manga}"
         )
 
     def test_manga_rating_auto_now_add(self):

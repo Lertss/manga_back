@@ -1,5 +1,6 @@
-from manga.models import Manga
 from rest_framework import serializers
+
+from manga.models import Manga
 from users.models import CustomUser
 
 from .models import Comment, MangaRating

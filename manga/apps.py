@@ -6,4 +6,4 @@ class MangaConfig(AppConfig):
     name = "manga"
 
     def ready(self):
-        import manga.signals
+        import manga.signals  # noqa: F401

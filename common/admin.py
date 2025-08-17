@@ -1,5 +1,6 @@
-from common.models import Comment
 from django.contrib import admin
+
+from common.models import Comment
 
 
 # Register your models here.

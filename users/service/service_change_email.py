@@ -1,6 +1,6 @@
 from allauth.account.models import EmailAddress
-from allauth.account.utils import send_email_confirmation
 from rest_framework.request import Request
+
 from users.models import CustomUser
 
 
@@ -19,22 +19,24 @@ def change_email_address(new_email: str, user_instance: CustomUser, request: Req
     """Changes the user's email address. It updates the existing address if it exists,
     or creates a new one if there are no records in the account_emailaddress table.
     After that, it changes the user's primary email address, updates its confirmation,
-     and sends a confirmation email to the new address."""
+    and sends a confirmation email to the new address."""
     # Get records in the account_emailaddress table for the user
     email_addresses = EmailAddress.objects.filter(user=user_instance)
 
     if email_addresses.exists():
+        # Update the existing email address
         email_address = email_addresses.first()
         email_address.email = new_email
+        email_address.verified = False  # Reset verification status
+        email_address.primary = True
         email_address.save()
     else:
         # Create a new record in the account_emailaddress table
-        EmailAddress.objects.create(user=user_instance, email=new_email, primary=True, verified=False)
+        email_address = EmailAddress.objects.create(user=user_instance, email=new_email, primary=True, verified=False)
 
-    # Change the user's email to a new one
+    # Update the user's email field
     user_instance.email = new_email
     user_instance.save()
 
     # Send a confirmation email to the new address
-    user_instance.emailaddress_set.filter(primary=True).update(email=new_email, verified=False)
-    send_email_confirmation(request, user_instance)
+    email_address.send_confirmation(request)

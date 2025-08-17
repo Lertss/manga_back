@@ -1,10 +1,11 @@
 from datetime import timedelta
 
-from common.models import Comment, MangaRating
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.shortcuts import get_object_or_404
 from django.test import RequestFactory, TestCase
 from django.utils import timezone
+
+from common.models import Comment, MangaRating
 from manga.models import Author, Category, Chapter, Country, Genre, Manga, Tag
 from manga.service.service import (
     create_comment,
@@ -24,7 +25,7 @@ from users.models import CustomUser, MangaList
 class MangaServiceTestCase(TestCase):
     def setUp(self):
 
-        self.category = Category.objects.create(cat_name="Manga")
+        self.category = Category.objects.create(category_name="Manga")
 
         self.manga = Manga.objects.create(
             category=self.category,
@@ -51,10 +52,10 @@ class MangaServiceTest(TestCase):
 
     def setUp(self):
 
-        self.genre = Genre.objects.create(genr_name="Action")
+        self.genre = Genre.objects.create(genre_name="Action")
         self.tag = Tag.objects.create(tag_name="Alchemy")
-        self.country = Country.objects.create(counts="Afghanistan")
-        self.category = Category.objects.create(cat_name="Manga")
+        self.country = Country.objects.create(country_name="Afghanistan")
+        self.category = Category.objects.create(category_name="Manga")
         self.author = Author.objects.create(first_name="John", last_name="Doe")
 
         for i in range(1, 101):
@@ -71,7 +72,7 @@ class MangaServiceTest(TestCase):
             )
 
             self.manga.author.add(self.author)
-            self.manga.counts.add(self.country)
+            self.manga.country.add(self.country)
             self.manga.genre.add(self.genre)
             self.manga.tags.add(self.tag)
 
@@ -80,7 +81,7 @@ class MangaServiceTest(TestCase):
                 title=f"Chapter Title {i}",
                 chapter_number=i,
                 volume=i,
-                time_prod=timezone.now(),
+                created_at=timezone.now(),
                 slug=None,
             )
 
@@ -106,10 +107,10 @@ class MangaRandomTest(TestCase):
 
     def setUp(self):
 
-        self.genre = Genre.objects.create(genr_name="Action")
+        self.genre = Genre.objects.create(genre_name="Action")
         self.tag = Tag.objects.create(tag_name="Alchemy")
-        self.country = Country.objects.create(counts="Afghanistan")
-        self.category = Category.objects.create(cat_name="Manga")
+        self.country = Country.objects.create(country_name="Afghanistan")
+        self.category = Category.objects.create(category_name="Manga")
         self.author = Author.objects.create(first_name="John", last_name="Doe")
 
         self.manga = Manga.objects.create(
@@ -125,7 +126,7 @@ class MangaRandomTest(TestCase):
         )
 
         self.manga.author.add(self.author)
-        self.manga.counts.add(self.country)
+        self.manga.country.add(self.country)
         self.manga.genre.add(self.genre)
         self.manga.tags.add(self.tag)
 
@@ -142,7 +143,7 @@ class MangaRandomTest(TestCase):
         )
 
         self.manga.author.add(self.author)
-        self.manga.counts.add(self.country)
+        self.manga.country.add(self.country)
         self.manga.genre.add(self.genre)
         self.manga.tags.add(self.tag)
 
@@ -178,10 +179,10 @@ class TopMangaFunctionTest(TestCase):
         self.user1 = CustomUser.objects.create(username="testuser1", gender="Male", adult=True)
         self.user2 = CustomUser.objects.create(username="testuser2", gender="Male", adult=True)
 
-        self.genre = Genre.objects.create(genr_name="Action")
+        self.genre = Genre.objects.create(genre_name="Action")
         self.tag = Tag.objects.create(tag_name="Alchemy")
-        self.country = Country.objects.create(counts="Afghanistan")
-        self.category = Category.objects.create(cat_name="Manga")
+        self.country = Country.objects.create(country_name="Afghanistan")
+        self.category = Category.objects.create(category_name="Manga")
         self.author = Author.objects.create(first_name="John", last_name="Doe")
 
         self.manga1 = Manga.objects.create(
@@ -194,10 +195,10 @@ class TopMangaFunctionTest(TestCase):
             avatar=SimpleUploadedFile("test_avatar.png", b"", content_type="image/png"),
             thumbnail=SimpleUploadedFile("test_thumbnail.png", b"", content_type="image/png"),
             slug="test-manga1",
-            time_prod=timezone.now() - timedelta(days=10),
+            created_at=timezone.now() - timedelta(days=10),
         )
         self.manga1.author.add(self.author)
-        self.manga1.counts.add(self.country)
+        self.manga1.country.add(self.country)
         self.manga1.genre.add(self.genre)
         self.manga1.tags.add(self.tag)
 
@@ -211,10 +212,10 @@ class TopMangaFunctionTest(TestCase):
             avatar=SimpleUploadedFile("test_avatar.png", b"", content_type="image/png"),
             thumbnail=SimpleUploadedFile("test_thumbnail.png", b"", content_type="image/png"),
             slug="test-manga2",
-            time_prod=timezone.now(),
+            created_at=timezone.now(),
         )
         self.manga2.author.add(self.author)
-        self.manga2.counts.add(self.country)
+        self.manga2.country.add(self.country)
         self.manga2.genre.add(self.genre)
         self.manga2.tags.add(self.tag)
 
@@ -281,10 +282,10 @@ class MangaListFunctionTestCase(TestCase):
         self.user = CustomUser.objects.create(username="testuser1", gender="Male", adult=True)
         self.factory = RequestFactory()
 
-        self.genre = Genre.objects.create(genr_name="Action")
+        self.genre = Genre.objects.create(genre_name="Action")
         self.tag = Tag.objects.create(tag_name="Alchemy")
-        self.country = Country.objects.create(counts="Afghanistan")
-        self.category = Category.objects.create(cat_name="Manga")
+        self.country = Country.objects.create(country_name="Afghanistan")
+        self.category = Category.objects.create(category_name="Manga")
         self.author = Author.objects.create(first_name="John", last_name="Doe")
 
         self.manga = Manga.objects.create(
@@ -300,7 +301,7 @@ class MangaListFunctionTestCase(TestCase):
         )
 
         self.manga.author.add(self.author)
-        self.manga.counts.add(self.country)
+        self.manga.country.add(self.country)
         self.manga.genre.add(self.genre)
         self.manga.tags.add(self.tag)
 
@@ -344,13 +345,17 @@ class MangaListFunctionTestCase(TestCase):
 
     def test_mangalist_filter(self):
         # Test if the function returns the correct MangaList object for the given user and manga_slug
-        filtered_list = mangalist_filter(request=type("Request", (object,), {"user": self.user}), manga_slug="manga-1")
+        filtered_list = mangalist_filter(
+            request=type("Request", (object,), {"user": self.user}),
+            manga_slug="manga-1",
+        )
         self.assertEqual(filtered_list, self.manga_list)
 
     def test_mangalist_filter_no_match(self):
         # Test if the function returns None when there is no match for the given manga_slug and user
         filtered_list = mangalist_filter(
-            request=type("Request", (object,), {"user": self.user}), manga_slug="nonexistent-manga"
+            request=type("Request", (object,), {"user": self.user}),
+            manga_slug="nonexistent-manga",
         )
         self.assertIsNone(filtered_list)
 
@@ -358,7 +363,8 @@ class MangaListFunctionTestCase(TestCase):
         # Test if the function returns None when the manga is associated with a different user
         another_user = CustomUser.objects.create_user(username="another_user", password="test_password")
         filtered_list = mangalist_filter(
-            request=type("Request", (object,), {"user": another_user}), manga_slug="manga-1"
+            request=type("Request", (object,), {"user": another_user}),
+            manga_slug="manga-1",
         )
         self.assertIsNone(filtered_list)
 

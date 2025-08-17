@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 
 import datetime
 import os
+import warnings
 from pathlib import Path
 
 
@@ -160,16 +161,31 @@ REST_AUTH = {
     "JWT_AUTH_RETURN_EXPIRATION": True,
 }
 
+
+warnings.filterwarnings(
+    "ignore",
+    message="app_settings.* is deprecated",
+    category=UserWarning,
+    module="dj_rest_auth.registration.serializers",
+)
 EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
 SITE_ID = 1
-ACCOUNT_EMAIL_REQUIRED = True
-ACCOUNT_AUTHENTICATION_METHOD = "username"
-ACCOUNT_EMAIL_VERIFICATION = "mandatory"
-ACCOUNT_CONFIRM_EMAIL_ON_GET = True
-LOGIN_URL = "http://127.0.0.1:8000/auth/login"
-ACCOUNT_ADAPTER = "users.email_url.CustomAccountURL"
-ACCOUNT_USER_MODEL_EMAIL_FIELD = "email"
+# Налаштування для django-allauth і dj_rest_auth
+ACCOUNT_LOGIN_METHODS = {"username", "email"}  # Дозволяє вхід за username або email
+ACCOUNT_SIGNUP_FIELDS = [
+    "email*",
+    "username*",
+    "password1*",
+    "password2*",
+]  # Формат списку для сумісності з ACCOUNT_EMAIL_VERIFICATION
+ACCOUNT_EMAIL_VERIFICATION = "mandatory"  # Вимагає підтвердження email
+ACCOUNT_CONFIRM_EMAIL_ON_GET = True  # Дозволяє підтвердження email через GET-запит
+ACCOUNT_USER_MODEL_EMAIL_FIELD = "email"  # Поле email у моделі користувача
+ACCOUNT_ADAPTER = "users.email_url.CustomAccountURL"  # Кастомний адаптер
+LOGIN_URL = "/auth/login"  # Відносний шлях для універсальності
 
+# Видаліть застаріле налаштування, якщо воно є
+# ACCOUNT_AUTHENTICATION_METHOD = 'username_email'
 
 OLD_PASSWORD_FIELD_ENABLED = True
 LOGOUT_ON_PASSWORD_CHANGE = False

@@ -1,5 +1,6 @@
 from django.contrib.auth import get_user_model
 from django.db import models
+
 from manga.models import Chapter, Manga
 from users.models import CustomUser
 

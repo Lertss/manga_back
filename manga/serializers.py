@@ -1,5 +1,6 @@
-from manga.models import Author, Category, Chapter, Country, Genre, Manga, Page, Tag
 from rest_framework import serializers
+
+from manga.models import Author, Category, Chapter, Country, Genre, Manga, Page, Tag
 from users.models import MangaList
 
 
@@ -14,7 +15,7 @@ class CountrySerializer(serializers.ModelSerializer):
         model = Country
         fields = (
             "id",
-            "counts",
+            "country_name",
         )
 
 
@@ -23,7 +24,7 @@ class GenreSerializer(serializers.ModelSerializer):
         model = Genre
         fields = (
             "id",
-            "genr_name",
+            "genre_name",
         )
 
 
@@ -38,7 +39,7 @@ class CategorySerializer(serializers.ModelSerializer):
         model = Category
         fields = (
             "id",
-            "cat_name",
+            "category_name",
         )
 
 
@@ -48,17 +49,25 @@ class MangaLastSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Manga
-        fields = ["id", "name_manga", "name_original", "english_only_field", "average_rating", "thumbnail", "url"]
+        fields = [
+            "id",
+            "name_manga",
+            "name_original",
+            "english_only_field",
+            "average_rating",
+            "thumbnail",
+            "url",
+        ]
 
-    def get_thumbnail(self, obj):
-        return obj.get_thumbnail()
+    def get_thumbnail_url(self, obj):
+        return obj.get_thumbnail_url()
 
     def get_url(self, obj):
         return obj.get_absolute_url()
 
     def to_representation(self, instance):
         representation = super().to_representation(instance)
-        representation["thumbnail"] = instance.get_thumbnail()
+        representation["thumbnail"] = instance.get_thumbnail_url()
         representation["url"] = instance.get_absolute_url()
         return representation
 
@@ -68,10 +77,10 @@ class MangaRandomSerializer(MangaLastSerializer):
 
     class Meta:
         model = Manga
-        fields = ["name_manga", "review", "thumbnail", "url", "category_title"]
+        fields = ["name_manga", "review", "get_thumbnail_url", "url", "category_title"]
 
     def get_category_title(self, obj):
-        return obj.category.cat_name
+        return obj.category.category_name
 
 
 class ChapterViewsMangaSerializer(serializers.ModelSerializer):
@@ -82,7 +91,7 @@ class ChapterViewsMangaSerializer(serializers.ModelSerializer):
 
 class MangaCreateUpdateSerializer(serializers.ModelSerializer):
     author = serializers.SlugRelatedField(slug_field="id", queryset=Author.objects.all(), many=True)
-    counts = serializers.SlugRelatedField(slug_field="id", queryset=Country.objects.all(), many=True)
+    country = serializers.SlugRelatedField(slug_field="id", queryset=Country.objects.all(), many=True)
     genre = serializers.SlugRelatedField(slug_field="id", queryset=Genre.objects.all(), many=True)
     tags = serializers.SlugRelatedField(slug_field="id", queryset=Tag.objects.all(), many=True)
     review = serializers.CharField(max_length=1000)
@@ -96,8 +105,8 @@ class MangaCreateUpdateSerializer(serializers.ModelSerializer):
             "name_original",
             "english_only_field",
             "author",
-            "time_prod",
-            "counts",
+            "created_at",
+            "country",
             "genre",
             "decency",
             "tags",
@@ -110,7 +119,7 @@ class MangaSerializer(serializers.ModelSerializer):
     from common.serializers import CommentSerializer
 
     author = AuthorSerializer(many=True, read_only=True)
-    counts = CountrySerializer(many=True, read_only=True)
+    country = CountrySerializer(many=True, read_only=True)
     tags = TagsSerializer(many=True, read_only=True)
     genre = GenreSerializer(many=True, read_only=True)
     chapters = ChapterViewsMangaSerializer(many=True, read_only=True)
@@ -125,15 +134,15 @@ class MangaSerializer(serializers.ModelSerializer):
             "name_original",
             "english_only_field",
             "author",
-            "time_prod",
-            "counts",
+            "created_at",
+            "country",
             "decency",
             "chapters",
             "genre",
             "tags",
             "comments",
             "review",
-            "get_avatar",
+            "get_avatar_url",
             "average_rating",
             "category_title",
             "get_absolute_url",
@@ -143,7 +152,7 @@ class MangaSerializer(serializers.ModelSerializer):
         return obj.average_rating()
 
     def get_category_title(self, obj):
-        return obj.category.cat_name
+        return obj.category.category_name
 
 
 class MangaListSerializer(serializers.ModelSerializer):

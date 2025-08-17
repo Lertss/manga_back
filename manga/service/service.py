@@ -2,10 +2,14 @@ import json
 import random
 from datetime import timedelta
 
-from common.models import Comment
 from django.db.models import Avg, Count
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
+from rest_framework import status
+from rest_framework.exceptions import NotFound
+from rest_framework.response import Response
+
+from common.models import Comment
 from manga.models import Author, Category, Chapter, Country, Genre, Manga, Page, Tag
 from manga.serializers import (
     AuthorSerializer,
@@ -17,34 +21,32 @@ from manga.serializers import (
     MangaRandomSerializer,
     TagsSerializer,
 )
-from rest_framework import status
-from rest_framework.response import Response
 from users.models import MangaList
 
 
 def filtering_and_exclusion(self) -> Manga:
     genres = self.request.query_params.getlist("genres")
     tags = self.request.query_params.getlist("tags")
-    counts = self.request.query_params.getlist("counts")
+    countries = self.request.query_params.getlist("country_name")
     categories = self.request.query_params.getlist("category")
     min_rating = self.request.query_params.get("min_rating")
 
     queryset = Manga.objects.all()
 
     for genre in genres:
-        queryset = queryset.filter(genre__genr_name=genre)
+        queryset = queryset.filter(genre__genre_name=genre)
     for tag in tags:
         queryset = queryset.filter(tags__tag_name=tag)
-    for count in counts:
-        queryset = queryset.filter(counts__counts=count)
+    for count in countries:
+        queryset = queryset.filter(country__country_name=count)
     for category in categories:
-        queryset = queryset.filter(category__cat_name=category)
+        queryset = queryset.filter(category__category_name=category)
 
     filter_params = {
-        "genres": "genre__genr_name",
+        "genres": "genre__genre_name",
         "tags": "tags__tag_name",
-        "countries": "counts__counts",
-        "categories": "category__cat_name",
+        "countries": "country__country_name",
+        "categories": "category__category_name",
     }
     # We exclude with a loop
     for param, model_field in filter_params.items():
@@ -79,7 +81,10 @@ def update_field_manga(view, request, field_name, instance_field, error_message)
         instance.save()
         return Response({"message": f"{field_name} updated successfully."})
 
-    return Response({"error": f"{field_name} field is required."}, status=status.HTTP_400_BAD_REQUEST)
+    return Response(
+        {"error": f"{field_name} field is required."},
+        status=status.HTTP_400_BAD_REQUEST,
+    )
 
 
 def update_field_key_manga(view, instance, field_name, data_key, success_message):
@@ -91,7 +96,10 @@ def update_field_key_manga(view, instance, field_name, data_key, success_message
         getattr(instance, field_name).add(*field_ids)
         return Response({"message": success_message})
 
-    return Response({"error": f"{field_name} field is required."}, status=status.HTTP_400_BAD_REQUEST)
+    return Response(
+        {"error": f"{field_name} field is required."},
+        status=status.HTTP_400_BAD_REQUEST,
+    )
 
 
 def update_category_field_manga(view, instance, category_id):
@@ -105,7 +113,10 @@ def update_category_field_manga(view, instance, category_id):
         except Category.DoesNotExist:
             return Response({"error": "Category not found."}, status=status.HTTP_400_BAD_REQUEST)
 
-    return Response({"error": "The 'category' field is required."}, status=status.HTTP_400_BAD_REQUEST)
+    return Response(
+        {"error": "The 'category' field is required."},
+        status=status.HTTP_400_BAD_REQUEST,
+    )
 
 
 def update_decency_field_manga(view, instance, decency):
@@ -144,7 +155,10 @@ def update_field_chapter(self, request, field_name, success_message):
         setattr(instance, field_name, field_value)
         instance.save()
         return Response({"message": success_message})
-    return Response({"error": f"{field_name} field is required."}, status=status.HTTP_400_BAD_REQUEST)
+    return Response(
+        {"error": f"{field_name} field is required."},
+        status=status.HTTP_400_BAD_REQUEST,
+    )
 
 
 def create_comment(request_user, **kwargs):
@@ -180,7 +194,8 @@ def mangalist_filter_by_user(request_user):
 def top_manga_objects_annotate_serializer():
     """Returns a list of top (best) manga objects and return them as serialized data"""
     return MangaLastSerializer(
-        Manga.objects.annotate(avg_rating=Avg("ratings__rating")).order_by("-avg_rating")[:100], many=True
+        Manga.objects.annotate(avg_rating=Avg("ratings__rating")).order_by("-avg_rating")[:100],
+        many=True,
     )
 
 
@@ -188,7 +203,7 @@ def top_manga_last_year_filter_serializer():
     """Returns a list of the top (best) manga titles released in the last year, and return them as serialized data."""
     last_year = timezone.now() - timedelta(days=365)
     top_manga_last_year = (
-        Manga.objects.filter(time_prod__gte=last_year)
+        Manga.objects.filter(created_at__gte=last_year)
         .annotate(avg_rating=Avg("ratings__rating"))
         .order_by("-avg_rating")[:100]
     )
@@ -204,12 +219,21 @@ def top_manga_comments_annotate_serializer():
 def random_manga():
     """Designed to select and return data about random manga objects"""
     manga_count = Manga.objects.count()
+
+    if manga_count == 0:
+        raise NotFound(detail="Не знайдено жодної манги в базі даних")
+
     if manga_count >= 2:
         random_indexes = random.sample(range(1, manga_count + 1), 2)
         random_manga = Manga.objects.filter(pk__in=random_indexes)
+        if random_manga.count() < 2:  # Якщо не всі об'єкти знайдені
+            random_manga = list(Manga.objects.all()[:2])
     else:
-        random_manga = [Manga.objects.first()] * 2
-    return MangaRandomSerializer(random_manga, many=True)
+        # Якщо є тільки одна манга, повертаємо її двічі
+        manga = get_object_or_404(Manga, pk=1)
+        random_manga = [manga, manga]
+
+    return MangaRandomSerializer(random_manga, many=True).data
 
 
 def one_hundred_last_added_chapters():

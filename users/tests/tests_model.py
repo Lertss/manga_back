@@ -3,8 +3,9 @@ from time import sleep
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase
 from django.utils import timezone
-from manga.models import Author, Category, Chapter, Country, Genre, Manga, Tag
 from rest_framework.exceptions import ValidationError as DRFValidationError
+
+from manga.models import Author, Category, Chapter, Country, Genre, Manga, Tag
 from users.models import CustomUser, MangaList, Notification
 
 
@@ -21,7 +22,8 @@ class CustomUserModelTest(TestCase):
     def test_get_avatar(self):
         user = CustomUser.objects.get(id=1)
         self.assertEqual(
-            user.get_avatar(), "http://127.0.0.1:8000/media/static/images/avatars/user/none_avatar_user.jpg"
+            user.get_avatar_url(),
+            "/media/static/images/avatars/user/none_avatar_user.jpg",
         )
 
     def test_save_method(self):
@@ -39,7 +41,10 @@ class CustomUserModelTest(TestCase):
             user2.save()
 
         # Check the error message
-        self.assertEqual(str(context.exception.detail["username"][0:43]), "This login already exists. Enter a new one")
+        self.assertEqual(
+            str(context.exception.detail["username"][0:43]),
+            "This login already exists. Enter a new one",
+        )
 
         # Ensure that user2 properties remain unchanged
         self.assertEqual(user2.slug, "testuser")
@@ -52,10 +57,10 @@ class MangaListTest(TestCase):
 
         self.user = CustomUser.objects.create(username="testuser", gender="Male", adult=True)
 
-        self.genre = Genre.objects.create(genr_name="Action")
+        self.genre = Genre.objects.create(genre_name="Action")
         self.tag = Tag.objects.create(tag_name="Alchemy")
-        self.country = Country.objects.create(counts="Afghanistan")
-        self.category = Category.objects.create(cat_name="Manga")
+        self.country = Country.objects.create(country_name="Afghanistan")
+        self.category = Category.objects.create(category_name="Manga")
         self.author = Author.objects.create(first_name="John", last_name="Doe")
 
         self.manga = Manga.objects.create(
@@ -70,7 +75,7 @@ class MangaListTest(TestCase):
             slug="test-manga",
         )
         self.manga.author.add(self.author)
-        self.manga.counts.add(self.country)
+        self.manga.country.add(self.country)
         self.manga.genre.add(self.genre)
         self.manga.tags.add(self.tag)
 
@@ -89,14 +94,14 @@ class NotificationTest(TestCase):
 
         self.user = CustomUser.objects.create(username="testuser", gender="Male", adult=True)
 
-        self.category = Category.objects.create(cat_name="Manga")
+        self.category = Category.objects.create(category_name="Manga")
 
         self.manga = Manga.objects.create(
             category=self.category,
             name_manga="Test Manga",
         )
 
-        self.chapter = Chapter.objects.create(manga=self.manga, title="Test Chapter", content="Test Content")
+        self.chapter = Chapter.objects.create(manga=self.manga, title="Test Chapter", chapter_number=1, volume=1)
 
     def test_create_notification(self):
 
@@ -124,10 +129,10 @@ class NotificationModelTest(TestCase):
 
         self.user = CustomUser.objects.create(username="testuser", gender="Male", adult=True)
 
-        self.genre = Genre.objects.create(genr_name="Action")
+        self.genre = Genre.objects.create(genre_name="Action")
         self.tag = Tag.objects.create(tag_name="Alchemy")
-        self.country = Country.objects.create(counts="Afghanistan")
-        self.category = Category.objects.create(cat_name="Manga")
+        self.country = Country.objects.create(country_name="Afghanistan")
+        self.category = Category.objects.create(category_name="Manga")
         self.author = Author.objects.create(first_name="John", last_name="Doe")
 
         self.manga = Manga.objects.create(
@@ -142,7 +147,7 @@ class NotificationModelTest(TestCase):
             slug="test-manga",
         )
         self.manga.author.add(self.author)
-        self.manga.counts.add(self.country)
+        self.manga.country.add(self.country)
         self.manga.genre.add(self.genre)
         self.manga.tags.add(self.tag)
 
@@ -151,7 +156,7 @@ class NotificationModelTest(TestCase):
             title="Chapter Title",
             chapter_number=1,
             volume=1,
-            time_prod=timezone.now(),
+            created_at=timezone.now(),
             slug="test-chapter",
         )
 
@@ -173,13 +178,19 @@ class NotificationModelTest(TestCase):
     def test_ordering(self):
 
         notification1 = Notification.objects.create(
-            user=self.user, chapter=self.chapter, is_read=False, created_at=timezone.now()
+            user=self.user,
+            chapter=self.chapter,
+            is_read=False,
+            created_at=timezone.now(),
         )
 
         sleep(2)
 
         notification2 = Notification.objects.create(
-            user=self.user, chapter=self.chapter, is_read=False, created_at=timezone.now()
+            user=self.user,
+            chapter=self.chapter,
+            is_read=False,
+            created_at=timezone.now(),
         )
 
         self.assertGreater(notification2.created_at, notification1.created_at)

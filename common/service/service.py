@@ -6,6 +6,7 @@ def comment_object_filter(model: str, slug) -> Comment:
     if model == "manga":
         return Comment.objects.filter(manga__slug=slug)
     elif model == "chapter":
+        print(Comment.objects.filter(chapter__slug=slug))
         return Comment.objects.filter(chapter__slug=slug)
     else:
         return Comment.objects.none()

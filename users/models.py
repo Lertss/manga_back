@@ -1,9 +1,10 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import IntegrityError, models, transaction
 from django.utils.text import slugify
+from rest_framework.exceptions import ValidationError
+
 from manga.models import Manga
 from manga_back.constants import GENDER_SELECTION, NAME_LIST_MANGA
-from rest_framework.exceptions import ValidationError
 
 
 class CustomUser(AbstractUser):
@@ -17,9 +18,9 @@ class CustomUser(AbstractUser):
     def get_absolute_url(self):
         return f"/{self.slug}/"
 
-    def get_avatar(self):
+    def get_avatar_url(self):  # Краще назвати так
         if self.avatar:
-            return "http://127.0.0.1:8000" + self.avatar.url
+            return self.avatar.url
         return ""
 
     def save(self, *args, **kwargs):

@@ -3,6 +3,7 @@ from time import sleep
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase
 from django.utils import timezone
+
 from manga.models import Author, Category, Chapter, Country, Genre, Manga, Tag
 from users.models import CustomUser, Notification
 from users.service.service import get_notifications
@@ -35,10 +36,10 @@ class GetNotificationsTest(TestCase):
 
         self.user = CustomUser.objects.create(username="testuser", gender="Male", adult=True)
 
-        self.genre = Genre.objects.create(genr_name="Action")
+        self.genre = Genre.objects.create(genre_name="Action")
         self.tag = Tag.objects.create(tag_name="Alchemy")
-        self.country = Country.objects.create(counts="Afghanistan")
-        self.category = Category.objects.create(cat_name="Manga")
+        self.country = Country.objects.create(country_name="Afghanistan")
+        self.category = Category.objects.create(category_name="Manga")
         self.author = Author.objects.create(first_name="John", last_name="Doe")
 
         self.manga = Manga.objects.create(
@@ -53,7 +54,7 @@ class GetNotificationsTest(TestCase):
             slug="test-manga",
         )
         self.manga.author.add(self.author)
-        self.manga.counts.add(self.country)
+        self.manga.country.add(self.country)
         self.manga.genre.add(self.genre)
         self.manga.tags.add(self.tag)
 
@@ -62,7 +63,7 @@ class GetNotificationsTest(TestCase):
             title="Chapter Title",
             chapter_number=1,
             volume=1,
-            time_prod=timezone.now(),
+            created_at=timezone.now(),
             slug="test-chapter",
         )
 
@@ -79,11 +80,17 @@ class GetNotificationsTest(TestCase):
     def test_get_all_notifications(self):
         # Create two notifications with different created_at times
         notification1 = Notification.objects.create(
-            user=self.user, chapter=self.chapter, is_read=False, created_at=timezone.now()
+            user=self.user,
+            chapter=self.chapter,
+            is_read=False,
+            created_at=timezone.now(),
         )
         sleep(2)
         notification2 = Notification.objects.create(
-            user=self.user, chapter=self.chapter, is_read=False, created_at=timezone.now()
+            user=self.user,
+            chapter=self.chapter,
+            is_read=False,
+            created_at=timezone.now(),
         )
 
         # Get all notifications using the utility function

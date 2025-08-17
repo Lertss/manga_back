@@ -31,7 +31,6 @@ MANGA_TAGS = [
     ("Magical Creatures", "Magical Creatures"),
     ("Memories from Another World", "Memories from Another World"),
     ("Survival", "Survival"),
-    ("Harem", "Harem"),
     ("Female Protagonist", "Female Protagonist"),
     ("Overpowered Protagonist", "Overpowered Protagonist"),
     ("Male Protagonist", "Male Protagonist"),
@@ -41,7 +40,6 @@ MANGA_TAGS = [
     ("Gyaru", "Gyaru"),
     ("Demons", "Demons"),
     ("Friendship", "Friendship"),
-    ("Slice of Life", "Slice of Life"),
     ("Cruel World", "Cruel World"),
     ("Animal Companions", "Animal Companions"),
     ("Beastmen", "Beastmen"),
@@ -80,7 +78,6 @@ MANGA_TAGS = [
     ("Identity Concealment", "Identity Concealment"),
     ("World Saving", "World Saving"),
     ("Medieval", "Medieval"),
-    ("Steampunk", "Steampunk"),
     ("Superheroes", "Superheroes"),
     ("Traditional Games", "Traditional Games"),
     ("Dumb Protagonist", "Dumb Protagonist"),
@@ -128,6 +125,7 @@ MANGA_GENRES = [
     ("Yaoi", "Yaoi"),
     ("Yuri", "Yuri"),
 ]
+
 
 COUNTRY_CHOICES = [
     ("Afghanistan", "Afghanistan"),

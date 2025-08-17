@@ -1,5 +1,3 @@
-from manga.models import Author, Chapter, Manga, Page
-from manga_back.service import data_acquisition_and_serialization
 from rest_framework import filters, generics, status, viewsets
 from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.generics import get_object_or_404
@@ -7,6 +5,9 @@ from rest_framework.parsers import FormParser, MultiPartParser
 from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnly
 from rest_framework.response import Response
 from rest_framework.views import APIView
+
+from manga.models import Author, Chapter, Manga, Page
+from manga_back.service import data_acquisition_and_serialization
 
 from .serializers import (
     AuthorSerializer,
@@ -24,11 +25,12 @@ from .service.service import filtering_and_exclusion
 class AllManga(generics.ListAPIView):
     filter_backends = (filters.OrderingFilter,)
     serializer_class = MangaSerializer
-    ordering_fields = ["name_manga", "time_prod"]
+    ordering_fields = ["name_manga", "created_at"]
 
     def get_queryset(self):
-        # Get the query parameters 'genres', 'category', 'counts' and 'tags'
+        # Get the query parameters 'genres', 'category', 'country_name' and 'tags'
         queryset = filtering_and_exclusion(self)
+
         return queryset
 
 
@@ -60,8 +62,6 @@ class MangaViewSet(viewsets.ModelViewSet):
     def partial_update(self, request, *args, **kwargs):
         """Handles PATCH requests for partial updates."""
         return super().partial_update(request, *args, **kwargs)
-
-
 
 
 class AuthorViewSet(viewsets.ModelViewSet):
@@ -134,7 +134,11 @@ class ChapterViewSet(viewsets.ModelViewSet):
         """Creating a comment to a chapter"""
         content = request.data.get("content")
         if content:
-            service.create_comment(request.user, chapter=get_object_or_404(Chapter, slug=slug), content=content)
+            service.create_comment(
+                request.user,
+                chapter=get_object_or_404(Chapter, slug=slug),
+                content=content,
+            )
             return Response({"message": "Comment added successfully."}, status=201)
         else:
             return Response({"error": "Content field is required."}, status=400)
@@ -223,7 +227,7 @@ class RandomMangaView(APIView):
     """Returns random manga"""
 
     def get(self, request, format=None):
-        return Response(service.random_manga().data)
+        return Response(service.random_manga())
 
 
 @api_view(["GET"])

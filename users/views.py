@@ -1,12 +1,12 @@
 from dj_rest_auth.registration.views import RegisterView
-from manga_back.service import data_acquisition_and_serialization
 from requests import Response
 from rest_framework import generics, status
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.generics import RetrieveAPIView
 from rest_framework.permissions import IsAuthenticated
-from rest_framework.response import Response
 from rest_framework.views import APIView
+
+from manga_back.service import data_acquisition_and_serialization
 
 from .models import CustomUser, Notification
 from .serializers import (
@@ -95,11 +95,15 @@ def change_email(request):
     if user_instance:
         if user_instance.email == new_email:
             return Response(
-                {"error": "New email must be different from the current email."}, status=status.HTTP_400_BAD_REQUEST
+                {"error": "New email must be different from the current email."},
+                status=status.HTTP_400_BAD_REQUEST,
             )
         existing_user = existing_user_func(new_email, user_instance)
         if existing_user:
-            return Response({"error": "This email is already in use."}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {"error": "This email is already in use."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
         change_email_address(new_email, user_instance, request)
         return Response(
             {"message": "Email change request has been sent. Please check your email to confirm."},

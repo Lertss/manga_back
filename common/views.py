@@ -1,7 +1,8 @@
-from manga_back.service import data_acquisition_and_serialization
 from rest_framework import generics, status, viewsets
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
+
+from manga_back.service import data_acquisition_and_serialization
 
 from .models import Comment, MangaRating
 from .permissions import IsOwnerOrReadOnly

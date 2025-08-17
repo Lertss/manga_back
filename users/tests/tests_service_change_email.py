@@ -1,5 +1,6 @@
 from django.contrib.auth import get_user_model
 from django.test import TestCase
+
 from users.service.service_change_email import existing_user_func, user_instance_func
 
 

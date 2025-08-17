@@ -1,6 +1,7 @@
 from dj_rest_auth.registration.views import ConfirmEmailView, VerifyEmailView
 from dj_rest_auth.views import PasswordResetConfirmView
 from django.urls import include, path
+
 from users import views
 from users.views import UpdateNotificationIsReadView
 
