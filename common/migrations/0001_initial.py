@@ -27,9 +27,7 @@ class Migration(migrations.Migration):
                 ),
                 (
                     "rating",
-                    models.PositiveIntegerField(
-                        choices=[(1, 1), (2, 2), (3, 3), (4, 4), (5, 5)]
-                    ),
+                    models.PositiveIntegerField(choices=[(1, 1), (2, 2), (3, 3), (4, 4), (5, 5)]),
                 ),
                 ("created_at", models.DateTimeField(auto_now_add=True)),
                 ("updated_at", models.DateTimeField(auto_now=True)),

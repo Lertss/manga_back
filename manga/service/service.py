@@ -25,6 +25,18 @@ from users.models import MangaList
 
 
 def filtering_and_exclusion(self) -> Manga:
+    """
+    Filter and exclude manga objects based on query parameters from the request.
+
+    Args:
+        self: The view or serializer instance with request.query_params.
+
+    Returns:
+        Manga: QuerySet of filtered Manga objects.
+
+    Example:
+        filtering_and_exclusion(self)
+    """
     genres = self.request.query_params.getlist("genres")
     tags = self.request.query_params.getlist("tags")
     countries = self.request.query_params.getlist("country_name")
@@ -67,12 +79,41 @@ def filtering_and_exclusion(self) -> Manga:
 
 
 def get_manga_objects(manga_slug) -> Manga:
-    """Returns a manga object"""
+    """
+    Retrieve a manga object by its slug.
+
+    Args:
+        manga_slug (str): The slug identifier for the manga.
+
+    Returns:
+        Manga: The Manga object matching the slug.
+
+    Raises:
+        Manga.DoesNotExist: If no manga with the given slug exists.
+
+    Example:
+        get_manga_objects('naruto')
+    """
     return Manga.objects.get(slug=manga_slug)
 
 
 def update_field_manga(view, request, field_name, instance_field, error_message):
-    """The function is designed to update a specific text field in a Manga model object"""
+    """
+    Update a specific text field in a Manga model object.
+
+    Args:
+        view: The view instance with get_object().
+        request: The request object containing data.
+        field_name (str): The name of the field in request.data.
+        instance_field (str): The name of the field in the model instance.
+        error_message (str): Error message to return if field is missing.
+
+    Returns:
+        Response: Success or error response.
+
+    Example:
+        update_field_manga(view, request, 'title', 'title', 'Title required.')
+    """
     instance = view.get_object()
     field_value = request.data.get(field_name)
 
@@ -88,7 +129,22 @@ def update_field_manga(view, request, field_name, instance_field, error_message)
 
 
 def update_field_key_manga(view, instance, field_name, data_key, success_message):
-    """The function is designed to update a specific key field to another object in a Manga model object"""
+    """
+    Update a specific key field (many-to-many) in a Manga model object.
+
+    Args:
+        view: The view instance with request.data.
+        instance: The Manga model instance.
+        field_name (str): The name of the many-to-many field.
+        data_key (str): The key in request.data containing IDs.
+        success_message (str): Message to return on success.
+
+    Returns:
+        Response: Success or error response.
+
+    Example:
+        update_field_key_manga(view, instance, 'genre', 'genre_ids', 'Genres updated.')
+    """
     field_ids = view.request.data.getlist(data_key)
 
     if field_ids is not None:
@@ -103,7 +159,20 @@ def update_field_key_manga(view, instance, field_name, data_key, success_message
 
 
 def update_category_field_manga(view, instance, category_id):
-    """The function is intended to update the manga category in the Manga model object"""
+    """
+    Update the category field in a Manga model object.
+
+    Args:
+        view: The view instance.
+        instance: The Manga model instance.
+        category_id: The ID of the category to set.
+
+    Returns:
+        Response: Success or error response.
+
+    Example:
+        update_category_field_manga(view, instance, 5)
+    """
     if category_id is not None:
         try:
             category_instance = get_object_or_404(Category, id=category_id)
@@ -120,7 +189,20 @@ def update_category_field_manga(view, instance, category_id):
 
 
 def update_decency_field_manga(view, instance, decency):
-    """The function is intended to update the age category of the manga in the Manga model object"""
+    """
+    Update the decency (age category) field in a Manga model object.
+
+    Args:
+        view: The view instance.
+        instance: The Manga model instance.
+        decency: The decency value to set (bool or str).
+
+    Returns:
+        Response: Success or error response.
+
+    Example:
+        update_decency_field_manga(view, instance, 'true')
+    """
     if decency is not None:
         decency = json.loads(decency.lower())
         instance.decency = decency
@@ -131,7 +213,15 @@ def update_decency_field_manga(view, instance, decency):
 
 
 def data_filter():
-    """Returns a list of filter objects"""
+    """
+    Retrieve lists of filter objects for authors, countries, genres, tags, and categories.
+
+    Returns:
+        dict: Dictionary with serialized lists for each filter type.
+
+    Example:
+        data_filter()
+    """
     data = {
         "authors": AuthorSerializer(Author.objects.all(), many=True).data,
         "countries": CountrySerializer(Country.objects.all(), many=True).data,
@@ -143,12 +233,39 @@ def data_filter():
 
 
 def create_page_chapter(chapter_instance, image, page_number):
-    """Request to create a page"""
+    """
+    Create a new page for a chapter.
+
+    Args:
+        chapter_instance: The Chapter model instance.
+        image: The image file for the page.
+        page_number: The page number (int).
+
+    Returns:
+        None
+
+    Example:
+        create_page_chapter(chapter, image, 1)
+    """
     Page.objects.create(chapter=chapter_instance, image=image, page_number=page_number)
 
 
 def update_field_chapter(self, request, field_name, success_message):
-    """Update a specific field in the Chapter model object"""
+    """
+    Update a specific field in the Chapter model object.
+
+    Args:
+        self: The view instance with get_object().
+        request: The request object containing data.
+        field_name (str): The name of the field to update.
+        success_message (str): Message to return on success.
+
+    Returns:
+        Response: Success or error response.
+
+    Example:
+        update_field_chapter(self, request, 'title', 'Title updated.')
+    """
     instance = self.get_object()
     field_value = request.data.get(field_name)
     if field_value is not None:
@@ -162,13 +279,35 @@ def update_field_chapter(self, request, field_name, success_message):
 
 
 def create_comment(request_user, **kwargs):
-    """Creating a request to create a comment"""
+    """
+    Create a new comment object.
+
+    Args:
+        request_user: The user creating the comment.
+        **kwargs: Additional fields for the Comment model.
+
+    Returns:
+        None
+
+    Example:
+        create_comment(user, text='Nice!')
+    """
     Comment.objects.create(user=request_user, **kwargs)
 
 
 def mangalist_get_or_create(request):
-    """Uses the get_or_create method provided by the Django ORM to get an instance of the MangaList model or create
-    one if it does not exist."""
+    """
+    Get or create a MangaList object for the current user and manga.
+
+    Args:
+        request: The request object containing user and data.
+
+    Returns:
+        tuple: (MangaList object, created (bool))
+
+    Example:
+        mangalist_get_or_create(request)
+    """
     return MangaList.objects.get_or_create(
         user=request.user,
         manga=get_manga_objects(request.data.get("slug")),
@@ -177,22 +316,64 @@ def mangalist_get_or_create(request):
 
 
 def mangalist_remove(request):
-    """Uses a Django model named MangaList to retrieve a specific MangaList object for later deletion"""
+    """
+    Retrieve a MangaList object for the current user and manga for later deletion.
+
+    Args:
+        request: The request object containing user and data.
+
+    Returns:
+        MangaList: The MangaList object or None if not found.
+
+    Example:
+        mangalist_remove(request)
+    """
     return MangaList.objects.filter(user=request.user, manga__slug=request.data.get("slug")).first()
 
 
 def mangalist_filter(request, manga_slug):
-    """Uses a Django model named MangaList to get a specific MangaList object"""
+    """
+    Retrieve a MangaList object for the current user and specified manga slug.
+
+    Args:
+        request: The request object containing user.
+        manga_slug (str): The slug of the manga.
+
+    Returns:
+        MangaList: The MangaList object or None if not found.
+
+    Example:
+        mangalist_filter(request, 'naruto')
+    """
     return MangaList.objects.filter(user=request.user, manga__slug=manga_slug).first()
 
 
 def mangalist_filter_by_user(request_user):
-    """Gets a list of MangaList objects that are associated with a specific user"""
+    """
+    Retrieve all MangaList objects associated with a specific user.
+
+    Args:
+        request_user: The user whose MangaList objects to retrieve.
+
+    Returns:
+        QuerySet: QuerySet of MangaList objects.
+
+    Example:
+        mangalist_filter_by_user(user)
+    """
     return MangaList.objects.filter(user=request_user)
 
 
 def top_manga_objects_annotate_serializer():
-    """Returns a list of top (best) manga objects and return them as serialized data"""
+    """
+    Retrieve top manga objects by average rating and serialize them.
+
+    Returns:
+        list: Serialized data for top manga objects.
+
+    Example:
+        top_manga_objects_annotate_serializer()
+    """
     return MangaLastSerializer(
         Manga.objects.annotate(avg_rating=Avg("ratings__rating")).order_by("-avg_rating")[:100],
         many=True,
@@ -200,7 +381,15 @@ def top_manga_objects_annotate_serializer():
 
 
 def top_manga_last_year_filter_serializer():
-    """Returns a list of the top (best) manga titles released in the last year, and return them as serialized data."""
+    """
+    Retrieve top manga titles released in the last year and serialize them.
+
+    Returns:
+        list: Serialized data for top manga objects from the last year.
+
+    Example:
+        top_manga_last_year_filter_serializer()
+    """
     last_year = timezone.now() - timedelta(days=365)
     top_manga_last_year = (
         Manga.objects.filter(created_at__gte=last_year)
@@ -211,13 +400,32 @@ def top_manga_last_year_filter_serializer():
 
 
 def top_manga_comments_annotate_serializer():
-    """Returns a list of top manga objects by number of comments and return them as serialized data"""
+    """
+    Retrieve top manga objects by number of comments and serialize them.
+
+    Returns:
+        list: Serialized data for top manga objects by comments.
+
+    Example:
+        top_manga_comments_annotate_serializer()
+    """
     top_manga_comments = Manga.objects.annotate(num_comments=Count("comment")).order_by("-num_comments")[:100]
     return MangaLastSerializer(top_manga_comments, many=True)
 
 
 def random_manga():
-    """Designed to select and return data about random manga objects"""
+    """
+    Select and return data about two random manga objects.
+
+    Returns:
+        list: Serialized data for two random manga objects.
+
+    Raises:
+        NotFound: If no manga objects exist.
+
+    Example:
+        random_manga()
+    """
     manga_count = Manga.objects.count()
 
     if manga_count == 0:
@@ -237,7 +445,15 @@ def random_manga():
 
 
 def one_hundred_last_added_chapters():
-    """Designed to receive and return information about the last hundred added chapters of a manga"""
+    """
+    Retrieve and return information about the last hundred added chapters of manga.
+
+    Returns:
+        list: List of serialized chapter data with manga info.
+
+    Example:
+        one_hundred_last_added_chapters()
+    """
     # Get the last hundred chapters
     last_hundred_chapters = Chapter.objects.order_by("-id")[:100]
 

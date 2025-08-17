@@ -22,64 +22,107 @@ from .service.service_change_email import change_email_address, existing_user_fu
 
 
 class CustomRegisterView(RegisterView):
-    """Expansion of the standard re-registration class"""
+    """
+    Expansion of the standard registration class to include additional fields.
+    """
 
     serializer_class = CustomRegisterSerializer
 
     def get_initial_fields(self):
+        """
+        Get the initial fields for registration, including gender and adult.
+
+        Returns:
+            list: List of initial fields for registration.
+        """
         initial_fields = super().get_initial_fields()
         initial_fields += ["gender", "adult"]
         return initial_fields
 
 
 class CustomUserDetailsView(RetrieveAPIView):
-    """Display the current user's data"""
+    """
+    API view to display the current user's data.
+    """
 
     permission_classes = [IsAuthenticated]
     queryset, serializer_class = data_acquisition_and_serialization(CustomUser, CustomUserDetailsSerializer)
 
     def get_object(self):
+        """
+        Get the current user object.
+
+        Returns:
+            CustomUser: The current user instance.
+        """
         return self.request.user
 
 
 class OtherUserDetailView(generics.RetrieveAPIView):
-    """Display another user's data."""
+    """
+    API view to display another user's data by slug.
+    """
 
     queryset, serializer_class = data_acquisition_and_serialization(CustomUser, CustomUserDetailsSerializer)
     lookup_field = "slug"
 
 
 class LatestUsersView(APIView):
-    """Display of ten newly created users."""
+    """
+    API view to display ten newly created users.
+    """
 
     def get(self, request):
+        """
+        Get the last ten created users.
+
+        Args:
+            request: The HTTP request object.
+
+        Returns:
+            Response: Serialized data of the last ten users.
+        """
         return Response(extract_and_serialize_data_on_recent_users().data)
 
 
 class UpdateUserViewMixin:
-    """A mixin class providing common behavior for updating user information"""
+    """
+    Mixin class providing common behavior for updating user information.
+    """
 
     serializer_class = None
     permission_classes = [IsAuthenticated]
 
     def get_object(self):
+        """
+        Get the current user object.
+
+        Returns:
+            CustomUser: The current user instance.
+        """
         return self.request.user
 
 
 class GenderUpdateView(UpdateUserViewMixin, generics.UpdateAPIView):
-    """Child class of UpdateUserViewMixin class, updating the user's gender"""
+    """
+    API view for updating the user's gender.
+    """
 
     serializer_class = GenderUpdateSerializer
 
 
 class AdultUpdateView(UpdateUserViewMixin, generics.UpdateAPIView):
-    """Child class of the UpdateUserViewMixin class, updating the user's age of majority"""
+    """
+    API view for updating the user's age of majority.
+    """
 
     serializer_class = AdultUpdateSerializer
 
 
 class AvatarUpdateView(UpdateUserViewMixin, generics.UpdateAPIView):
-    """Child class of the UpdateUserViewMixin class, updating the user profile image"""
+    """
+    API view for updating the user's profile image.
+    """
 
     serializer_class = AvatarUpdateSerializer
 
@@ -87,7 +130,15 @@ class AvatarUpdateView(UpdateUserViewMixin, generics.UpdateAPIView):
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
 def change_email(request):
-    """Email change function"""
+    """
+    API view to change the user's email address.
+
+    Args:
+        request: The HTTP request object.
+
+    Returns:
+        Response: Result of the email change operation.
+    """
     new_email = request.data.get("new_email")
     if not new_email:
         return Response({"error": "New email is required."}, status=status.HTTP_400_BAD_REQUEST)
@@ -114,31 +165,58 @@ def change_email(request):
 
 
 class NotificationListProfileView(generics.ListAPIView):
-    """Displays a list of all notifications for the authenticated user"""
+    """
+    API view to display a list of all notifications for the authenticated user.
+    """
 
     serializer_class = NotificationSerializer
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
+        """
+        Get all notifications for the authenticated user.
+
+        Returns:
+            QuerySet: All notifications for the user.
+        """
         return get_notifications(self.request.user)
 
 
 class NotificationListView(generics.ListAPIView):
-    """Displays a list of unread notifications for an authenticated user."""
+    """
+    API view to display a list of unread notifications for the authenticated user.
+    """
 
     serializer_class = NotificationSerializer
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
+        """
+        Get unread notifications for the authenticated user.
+
+        Returns:
+            QuerySet: Unread notifications for the user.
+        """
         return get_notifications(self.request.user, False)
 
 
 class UpdateNotificationIsReadView(generics.UpdateAPIView):
-    """Updates the is_read field in the notification to mark it as read"""
+    """
+    API view to update the is_read field in the notification to mark it as read.
+    """
 
     permission_classes = [IsAuthenticated]
     serializer_class, queryset = data_acquisition_and_serialization(Notification, NotificationSerializer)
 
     def perform_update(self, serializer):
+        """
+        Mark the notification as read and save the instance.
+
+        Args:
+            serializer (NotificationSerializer): The serializer instance.
+
+        Returns:
+            None
+        """
         serializer.instance.is_read = True
         serializer.save()

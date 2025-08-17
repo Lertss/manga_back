@@ -16,6 +16,7 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 
+from debug_toolbar.toolbar import debug_toolbar_urls
 from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib import admin
@@ -26,9 +27,13 @@ import manga.urls
 import users.urls
 
 
-urlpatterns = [
-    path("admin/", admin.site.urls),
-    path("api/v1/", include(manga.urls)),
-    path("auth/", include(users.urls)),
-    path("commn/", include(common.urls)),
-] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+urlpatterns = (
+    [
+        path("admin/", admin.site.urls),
+        path("api/v1/", include(manga.urls)),
+        path("auth/", include(users.urls)),
+        path("commn/", include(common.urls)),
+    ]
+    + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+    + debug_toolbar_urls()
+)

@@ -80,9 +80,7 @@ class Migration(migrations.Migration):
                 ),
                 (
                     "name_original",
-                    models.CharField(
-                        blank=True, max_length=100, verbose_name="name_original"
-                    ),
+                    models.CharField(blank=True, max_length=100, verbose_name="name_original"),
                 ),
                 ("english_only_field", models.CharField(max_length=255, unique=True)),
                 ("created_at", models.DateTimeField(auto_now_add=True)),
@@ -102,9 +100,7 @@ class Migration(migrations.Migration):
                 ),
                 (
                     "thumbnail",
-                    models.ImageField(
-                        blank=True, null=True, upload_to="media/products/miniava"
-                    ),
+                    models.ImageField(blank=True, null=True, upload_to="media/products/miniava"),
                 ),
                 ("slug", models.SlugField(unique=True)),
                 (
@@ -200,9 +196,7 @@ class Migration(migrations.Migration):
         ),
         migrations.AddConstraint(
             model_name="page",
-            constraint=models.UniqueConstraint(
-                fields=("chapter", "page_number"), name="unique_page_per_chapter"
-            ),
+            constraint=models.UniqueConstraint(fields=("chapter", "page_number"), name="unique_page_per_chapter"),
         ),
         migrations.AddIndex(
             model_name="manga",
