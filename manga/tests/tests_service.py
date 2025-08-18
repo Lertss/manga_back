@@ -24,7 +24,6 @@ from users.models import CustomUser, MangaList
 
 class MangaServiceTestCase(TestCase):
     def setUp(self):
-
         self.category = Category.objects.create(category_name="Manga")
 
         self.manga = Manga.objects.create(
@@ -38,20 +37,16 @@ class MangaServiceTestCase(TestCase):
         )
 
     def test_get_manga_objects_existing_slug(self):
-
         result = get_manga_objects(manga_slug="test-manga")
         self.assertEqual(result, self.manga)
 
     def test_get_manga_objects_nonexistent_slug(self):
-
         with self.assertRaises(Manga.DoesNotExist):
             get_manga_objects(manga_slug="nonexistent-slug")
 
 
 class MangaServiceTest(TestCase):
-
     def setUp(self):
-
         self.genre = Genre.objects.create(genre_name="Action")
         self.tag = Tag.objects.create(tag_name="Alchemy")
         self.country = Country.objects.create(country_name="Afghanistan")
@@ -104,9 +99,7 @@ class MangaServiceTest(TestCase):
 
 
 class MangaRandomTest(TestCase):
-
     def setUp(self):
-
         self.genre = Genre.objects.create(genre_name="Action")
         self.tag = Tag.objects.create(tag_name="Alchemy")
         self.country = Country.objects.create(country_name="Afghanistan")
@@ -148,7 +141,6 @@ class MangaRandomTest(TestCase):
         self.manga.tags.add(self.tag)
 
     def test_random_manga_with_two_mangas(self):
-
         manga_count = Manga.objects.count()
         self.assertEqual(manga_count, 2)
 
@@ -159,7 +151,6 @@ class MangaRandomTest(TestCase):
         self.assertTrue(any("url" in item and item["url"] == "/manga-2/" for item in result.data))
 
     def test_random_manga_with_less_than_two_mangas(self):
-
         Manga.objects.filter(slug="manga-2").delete()
 
         result = random_manga()
@@ -173,9 +164,7 @@ class MangaRandomTest(TestCase):
 
 
 class TopMangaFunctionTest(TestCase):
-
     def setUp(self):
-
         self.user1 = CustomUser.objects.create(username="testuser1", gender="Male", adult=True)
         self.user2 = CustomUser.objects.create(username="testuser2", gender="Male", adult=True)
 
@@ -236,7 +225,7 @@ class TopMangaFunctionTest(TestCase):
         result = top_manga_last_year_filter_serializer()
 
         # Add your assertions based on your serializer and model structure
-        for i in range(1, 3):
+        for _ in range(1, 3):
             self.assertEqual(len(result.data), 2)  # Assuming only two Manga objects in the last year
             self.assertEqual(result.data[0]["name_manga"], "Test Manga2")
             self.assertEqual(result.data[0]["average_rating"], 4)  # Assuming the average rating is calculated correctly
@@ -248,10 +237,9 @@ class TopMangaFunctionTest(TestCase):
     """
 
     def test_top_manga_objects_annotate_serializer(self):
-
         result = top_manga_objects_annotate_serializer()
         # Add your assertions based on your serializer and model structure
-        for i in range(1, 3):
+        for _ in range(1, 3):
             self.assertEqual(len(result.data), 2)  # Assuming only two Manga objects in the last year
             self.assertEqual(result.data[0]["name_manga"], "Test Manga2")
             self.assertEqual(result.data[0]["average_rating"], 4)  # Assuming the average rating is calculated correctly
@@ -263,7 +251,6 @@ class TopMangaFunctionTest(TestCase):
     """
 
     def test_top_manga_comments_annotate_serializer(self):
-
         result = top_manga_comments_annotate_serializer()
 
         self.assertEqual(len(result.data), 2)
@@ -398,7 +385,6 @@ class MangaListFunctionTestCase(TestCase):
     """
 
     def test_create_comment(self):
-
         content = "This is a test comment."
         create_comment(self.user, manga=get_object_or_404(Manga, slug="manga-1"), content=content)
 

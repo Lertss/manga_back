@@ -5,7 +5,6 @@ from django.urls import include, path
 from users import views
 from users.views import UpdateNotificationIsReadView
 
-
 urlpatterns = [
     path("notifications/profile/", views.NotificationListProfileView.as_view(), name="notification-list"),
     path("notifications/", views.NotificationListView.as_view(), name="notification-detail"),

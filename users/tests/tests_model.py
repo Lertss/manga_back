@@ -52,9 +52,7 @@ class CustomUserModelTest(TestCase):
 
 
 class MangaListTest(TestCase):
-
     def setUp(self):
-
         self.user = CustomUser.objects.create(username="testuser", gender="Male", adult=True)
 
         self.genre = Genre.objects.create(genre_name="Action")
@@ -80,7 +78,6 @@ class MangaListTest(TestCase):
         self.manga.tags.add(self.tag)
 
     def test_create_manga_list(self):
-
         manga_list_item = MangaList.objects.create(user=self.user, manga=self.manga, name="Reading")
 
         self.assertEqual(manga_list_item.user, self.user)
@@ -89,9 +86,7 @@ class MangaListTest(TestCase):
 
 
 class NotificationTest(TestCase):
-
     def setUp(self):
-
         self.user = CustomUser.objects.create(username="testuser", gender="Male", adult=True)
 
         self.category = Category.objects.create(category_name="Manga")
@@ -104,7 +99,6 @@ class NotificationTest(TestCase):
         self.chapter = Chapter.objects.create(manga=self.manga, title="Test Chapter", chapter_number=1, volume=1)
 
     def test_create_notification(self):
-
         notification = Notification.objects.create(user=self.user, chapter=self.chapter)
 
         self.assertEqual(notification.user, self.user)
@@ -112,7 +106,6 @@ class NotificationTest(TestCase):
         self.assertFalse(notification.is_read)
 
     def test_notification_ordering(self):
-
         notification1 = Notification.objects.create(user=self.user, chapter=self.chapter)
         notification2 = Notification.objects.create(user=self.user, chapter=self.chapter)
         notification3 = Notification.objects.create(user=self.user, chapter=self.chapter)
@@ -124,9 +117,7 @@ class NotificationTest(TestCase):
 
 
 class NotificationModelTest(TestCase):
-
     def setUp(self):
-
         self.user = CustomUser.objects.create(username="testuser", gender="Male", adult=True)
 
         self.genre = Genre.objects.create(genre_name="Action")
@@ -161,7 +152,6 @@ class NotificationModelTest(TestCase):
         )
 
     def test_create_notification(self):
-
         notification = Notification.objects.create(user=self.user, chapter=self.chapter, is_read=False)
 
         self.assertEqual(notification.user, self.user)
@@ -170,13 +160,11 @@ class NotificationModelTest(TestCase):
         self.assertIsNotNone(notification.created_at)
 
     def test_default_values(self):
-
         notification = Notification.objects.create(user=self.user, chapter=self.chapter)
 
         self.assertFalse(notification.is_read)
 
     def test_ordering(self):
-
         notification1 = Notification.objects.create(
             user=self.user,
             chapter=self.chapter,

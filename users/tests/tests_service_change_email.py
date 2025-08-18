@@ -3,14 +3,11 @@ from django.test import TestCase
 
 from users.service.service_change_email import existing_user_func, user_instance_func
 
-
 CustomUser = get_user_model()
 
 
 class UserInstanceFuncTest(TestCase):
-
     def setUp(self):
-
         self.user = CustomUser.objects.create_user(
             email="test@example.com", username="testuser", password="testpassword"
         )
@@ -25,7 +22,6 @@ class UserInstanceFuncTest(TestCase):
 
 
 class ExistingUserFuncTest(TestCase):
-
     def setUp(self):
         self.user = CustomUser.objects.create_user(
             email="test@example.com", username="testuser", password="testpassword"
@@ -49,7 +45,6 @@ class ExistingUserFuncTest(TestCase):
 
 
 class ExistingUserFuncTestV2(TestCase):
-
     def setUp(self):
         self.user = CustomUser.objects.create_user(
             email="test@example.com", username="testuser", password="testpassword"

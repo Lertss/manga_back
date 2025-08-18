@@ -429,12 +429,12 @@ def random_manga():
     manga_count = Manga.objects.count()
 
     if manga_count == 0:
-        raise NotFound(detail="Не знайдено жодної манги в базі даних")
+        raise NotFound(detail="No manga found in the database")
 
     if manga_count >= 2:
         random_indexes = random.sample(range(1, manga_count + 1), 2)
         random_manga = Manga.objects.filter(pk__in=random_indexes)
-        if random_manga.count() < 2:  # Якщо не всі об'єкти знайдені
+        if random_manga.count() < 2:
             random_manga = list(Manga.objects.all()[:2])
     else:
         # Якщо є тільки одна манга, повертаємо її двічі

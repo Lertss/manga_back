@@ -11,29 +11,23 @@ from users.service.service_change_email import existing_user_func
 
 
 class ExistingUserFuncTest(TestCase):
-
     def setUp(self):
-
         self.user = CustomUser.objects.create_user(
             email="test@example.com", username="testuser", password="testpassword"
         )
 
     def test_existing_user_func_returns_user(self):
-
         result_user = existing_user_func("test@example.com", self.user)
         print(self.user)
         self.assertEqual(result_user, self.user)
 
     def test_existing_user_func_with_nonexistent_user(self):
-
         result_user = existing_user_func("nonexistent@example.com", self.user)
         self.assertIsNone(result_user)
 
 
 class GetNotificationsTest(TestCase):
-
     def setUp(self):
-
         self.user = CustomUser.objects.create(username="testuser", gender="Male", adult=True)
 
         self.genre = Genre.objects.create(genre_name="Action")

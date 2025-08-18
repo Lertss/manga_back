@@ -15,7 +15,6 @@ import os
 import warnings
 from pathlib import Path
 
-
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -172,22 +171,21 @@ warnings.filterwarnings(
 )
 EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
 SITE_ID = 1
-# Налаштування для django-allauth і dj_rest_auth
-ACCOUNT_LOGIN_METHODS = {"username", "email"}  # Дозволяє вхід за username або email
+
+# settings for для django-allauth and dj_rest_auth
+ACCOUNT_LOGIN_METHODS = {"username", "email"}
 ACCOUNT_SIGNUP_FIELDS = [
     "email*",
     "username*",
     "password1*",
     "password2*",
-]  # Формат списку для сумісності з ACCOUNT_EMAIL_VERIFICATION
-ACCOUNT_EMAIL_VERIFICATION = "mandatory"  # Вимагає підтвердження email
-ACCOUNT_CONFIRM_EMAIL_ON_GET = True  # Дозволяє підтвердження email через GET-запит
-ACCOUNT_USER_MODEL_EMAIL_FIELD = "email"  # Поле email у моделі користувача
-ACCOUNT_ADAPTER = "users.email_url.CustomAccountURL"  # Кастомний адаптер
-LOGIN_URL = "/auth/login"  # Відносний шлях для універсальності
+]
+ACCOUNT_EMAIL_VERIFICATION = "mandatory"
+ACCOUNT_CONFIRM_EMAIL_ON_GET = True
+ACCOUNT_USER_MODEL_EMAIL_FIELD = "email"
+ACCOUNT_ADAPTER = "users.email_url.CustomAccountURL"
+LOGIN_URL = "/auth/login"
 
-# Видаліть застаріле налаштування, якщо воно є
-# ACCOUNT_AUTHENTICATION_METHOD = 'username_email'
 
 OLD_PASSWORD_FIELD_ENABLED = True
 LOGOUT_ON_PASSWORD_CHANGE = False

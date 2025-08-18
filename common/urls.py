@@ -3,7 +3,6 @@ from rest_framework import routers
 
 from common.views import ChapterCommentsView, CommentViewSet, MangaCommentsView, MangaRatingViewSet
 
-
 router = routers.DefaultRouter()
 
 

@@ -26,7 +26,6 @@ import common.urls
 import manga.urls
 import users.urls
 
-
 urlpatterns = (
     [
         path("admin/", admin.site.urls),

@@ -83,7 +83,8 @@ class MangaRatingViewSet(viewsets.ModelViewSet):
     """
     ViewSet for interacting with manga ratings.
 
-    Allows users to create or update their rating for a manga. If a rating exists, it is updated; otherwise, a new rating is created.
+    Allows users to create or update their rating for a manga. If a rating exists, it is updated;
+    otherwise, a new rating is created.
     """
 
     queryset, serializer_class = data_acquisition_and_serialization(MangaRating, MangaRatingSerializer)

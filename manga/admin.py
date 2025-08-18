@@ -2,7 +2,6 @@ from django.contrib import admin
 
 from manga import models
 
-
 admin.site.register(models.Author)
 admin.site.register(models.Country)
 admin.site.register(models.Genre)

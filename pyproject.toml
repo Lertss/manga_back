@@ -47,7 +47,6 @@ dev = [
 
 
 [tool.ruff]
-fix = true
 
 line-length = 120
 
@@ -56,4 +55,27 @@ exclude = [
     ".venv",
     "migrations",
     "__pycache__",
+    "manage.py"
 ]
+
+target-version = "py312"
+
+[tool.ruff.lint]
+select = [
+    "E",
+    "I",
+    "UP",
+    "N",
+    "F",
+    "B",
+    "Q",
+    "DJ",
+    "RUF",
+    ]
+ignore = ["RUF012"]
+
+[tool.ruff.format]
+docstring-code-format = true
+
+[tool.ruff.lint.per-file-ignores]
+"urls.py" = ["RUF005"]

@@ -3,7 +3,6 @@ from rest_framework import routers
 
 from manga import views
 
-
 router = routers.DefaultRouter()
 
 router.register(r"authors", views.AuthorViewSet, basename="author")

@@ -27,13 +27,15 @@ from .service.service import filtering_and_exclusion
 
 class MangaPagination(PageNumberPagination):
     page_size = 20
-    page_size_query_param = 'page_size'
+    page_size_query_param = "page_size"
     max_page_size = 50
+
 
 class AllManga(generics.ListAPIView):
     """
     API view to list all manga with filtering and ordering.
     """
+
     filter_backends = (filters.OrderingFilter,)
     serializer_class = MangaAllSerializer
     ordering_fields = ["name_manga", "created_at"]
@@ -172,7 +174,7 @@ class ChapterViewSet(viewsets.ModelViewSet):
         serializer.is_valid(raise_exception=True)
         self.perform_create(serializer)
         chapter_instance = serializer.instance
-        for image, page_number in zip(pages_data, numb):
+        for image, page_number in zip(pages_data, numb, strict=True):
             service.create_page_chapter(chapter_instance, image, page_number)
         headers = self.get_success_headers(serializer.data)
         return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
