@@ -2,6 +2,7 @@ from django.db.models import Avg
 from rest_framework import filters, generics, status, viewsets
 from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.generics import get_object_or_404
+from rest_framework.pagination import PageNumberPagination
 from rest_framework.parsers import FormParser, MultiPartParser
 from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnly
 from rest_framework.response import Response
@@ -24,16 +25,19 @@ from .service import service
 from .service.service import filtering_and_exclusion
 
 
+class MangaPagination(PageNumberPagination):
+    page_size = 20
+    page_size_query_param = 'page_size'
+    max_page_size = 50
+
 class AllManga(generics.ListAPIView):
     """
     API view to list all manga with filtering and ordering.
-
-    Allows filtering by genres, category, country_name, and tags.
     """
-
     filter_backends = (filters.OrderingFilter,)
     serializer_class = MangaAllSerializer
     ordering_fields = ["name_manga", "created_at"]
+    pagination_class = MangaPagination
 
     def get_queryset(self):
         """
@@ -45,7 +49,7 @@ class AllManga(generics.ListAPIView):
         queryset = filtering_and_exclusion(self)
         return (
             queryset.select_related("category")
-            .prefetch_related("author", "country", "genre", "tags", "chapters", "ratings")
+            .prefetch_related("author", "country", "genre", "tags", "chapters")
             .annotate(average_rating=Avg("ratings__rating"))
         )
 

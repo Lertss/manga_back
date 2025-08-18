@@ -100,15 +100,15 @@ class MangaLastSerializer(serializers.ModelSerializer):
 
     def get_url(self, obj):
         """
-        Get the absolute URL for the manga object.
+        Get the URL for the manga object.
 
         Args:
             obj (Manga): Manga instance.
 
         Returns:
-            str: Absolute URL.
+            str: URL.
         """
-        return obj.get_absolute_url()
+        return obj.get_url()
 
     def to_representation(self, instance):
         """
@@ -122,7 +122,7 @@ class MangaLastSerializer(serializers.ModelSerializer):
         """
         representation = super().to_representation(instance)
         representation["thumbnail"] = instance.get_thumbnail_url()
-        representation["url"] = instance.get_absolute_url()
+        representation["url"] = instance.get_url()
         return representation
 
 
@@ -237,7 +237,7 @@ class MangaSerializer(serializers.ModelSerializer):
             "get_avatar_url",
             "average_rating",
             "category_title",
-            "get_absolute_url",
+            "get_url",
         )
 
     def get_average_rating(self, obj):
@@ -293,7 +293,7 @@ class MangaAllSerializer(serializers.ModelSerializer):
             "get_avatar_url",
             "average_rating",
             "category_title",
-            "get_absolute_url",
+            "get_url",
         )
 
     def get_average_rating(self, obj):

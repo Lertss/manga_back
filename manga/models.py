@@ -231,15 +231,15 @@ class Manga(models.Model):
             return self.avatar.url
         return ""
 
-    def get_absolute_url(self):
+    def get_url(self):
         """
-        Get the absolute URL for the manga detail page.
+        Get the URL for the manga detail page.
 
         Returns:
-            str: Absolute URL.
+            str: URL.
 
         Example:
-            manga.get_absolute_url()
+            manga.get_url()
         """
         return f"/{self.slug}/"
 

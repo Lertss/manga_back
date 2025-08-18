@@ -64,7 +64,7 @@ class CommentUserPageSerializer(serializers.ModelSerializer):
         Returns:
             str or None: Manga URL or None.
         """
-        return obj.manga.get_absolute_url() if obj.manga else None
+        return obj.manga.get_url() if obj.manga else None
 
     def get_chapter_name(self, obj):
         """

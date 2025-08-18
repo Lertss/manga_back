@@ -25,15 +25,15 @@ class CustomUser(AbstractUser):
     first_name = None
     last_name = None
 
-    def get_absolute_url(self):
+    def get_url(self):
         """
-        Get the absolute URL for the user profile.
+        Get the URL for the user profile.
 
         Returns:
             str: URL string for the user's profile.
 
         Example:
-            user.get_absolute_url()
+            user.get_url()
         """
         return f"/{self.slug}/"
 

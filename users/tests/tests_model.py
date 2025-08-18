@@ -15,9 +15,9 @@ class CustomUserModelTest(TestCase):
         # Set up non-modified objects used by all test methods
         CustomUser.objects.create(username="testuser", gender="Male", adult=True, slug="test-user")
 
-    def test_get_absolute_url(self):
+    def test_get_url(self):
         user = CustomUser.objects.get(id=1)
-        self.assertEqual(user.get_absolute_url(), "/test-user/")
+        self.assertEqual(user.get_url(), "/test-user/")
 
     def test_get_avatar(self):
         user = CustomUser.objects.get(id=1)

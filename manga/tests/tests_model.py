@@ -93,15 +93,15 @@ class MangaModelTest(TestCase):
         manga = self.create_manga()
         self.assertEqual(manga.get_avatar_url(), manga.avatar.url)
 
-    def test_get_absolute_url(self):
+    def test_get_url(self):
         """
-        Test get_absolute_url method of Manga model.
+        Test get_url method of Manga model.
 
         Returns:
             None
         """
         manga = self.create_manga()
-        self.assertEqual(manga.get_absolute_url(), f"/{manga.slug}/")
+        self.assertEqual(manga.get_url(), f"/{manga.slug}/")
 
     def test_get_thumbnail_url(self):
         """
