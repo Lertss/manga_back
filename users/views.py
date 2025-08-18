@@ -1,5 +1,5 @@
 from dj_rest_auth.registration.views import RegisterView
-from requests import Response
+from rest_framework.response import Response
 from rest_framework import generics, status
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.generics import RetrieveAPIView
@@ -82,7 +82,7 @@ class LatestUsersView(APIView):
         Returns:
             Response: Serialized data of the last ten users.
         """
-        return Response(extract_and_serialize_data_on_recent_users().data)
+        return Response(extract_and_serialize_data_on_recent_users())
 
 
 class UpdateUserViewMixin:

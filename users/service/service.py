@@ -14,7 +14,7 @@ def extract_and_serialize_data_on_recent_users():
     """
     latest_users = CustomUser.objects.all().order_by("-date_joined")[:10]
     serializer = CustomUserLastDetailsSerializer(latest_users, many=True)
-    return serializer
+    return serializer.data
 
 
 def get_notifications(user, unread_only: bool = False):
