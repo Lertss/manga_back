@@ -25,32 +25,6 @@ class CustomUser(AbstractUser):
     first_name = None
     last_name = None
 
-    def get_url(self):
-        """
-        Get the URL for the user profile.
-
-        Returns:
-            str: URL string for the user's profile.
-
-        Example:
-            user.get_url()
-        """
-        return f"/{self.slug}/"
-
-    def get_avatar_url(self):
-        """
-        Get the URL of the user's avatar image.
-
-        Returns:
-            str: URL of the avatar image or empty string if not set.
-
-        Example:
-            user.get_avatar_url()
-        """
-        if self.avatar:
-            return self.avatar.url
-        return ""
-
     def save(self, *args, **kwargs):
         """
         Save the CustomUser instance to the database, ensuring unique slug and avatar.
@@ -86,6 +60,34 @@ class CustomUser(AbstractUser):
                     counter += 1
                     self.slug = f"{original_slug}-{counter}"
 
+    def get_url(self):
+        """
+        Get the URL for the user profile.
+
+        Returns:
+            str: URL string for the user's profile.
+
+        Example:
+            user.get_url()
+        """
+        return f"/{self.slug}/"
+
+    def get_avatar_url(self):
+        """
+        Get the URL of the user's avatar image.
+
+        Returns:
+            str: URL of the avatar image or empty string if not set.
+
+        Example:
+            user.get_avatar_url()
+        """
+        if self.avatar:
+            return self.avatar.url
+        return ""
+
+
+
 
 class MangaList(models.Model):
     """
@@ -108,6 +110,14 @@ class MangaList(models.Model):
 
         unique_together = ["user", "manga"]
 
+    def __str__(self):
+        """
+        String representation of the MangaList instance.
+
+        Returns:
+            str: A string containing the username, name manga, and list category.
+        """
+        return f"{self.user.username}'s {self.name} - {self.manga.name_manga}"
 
 class Notification(models.Model):
     """
@@ -131,3 +141,15 @@ class Notification(models.Model):
         """
 
         ordering = ["-created_at"]
+
+    def __str__(self):
+        """
+        String representation of the Notification instance.
+
+        Returns:
+            str: A string containing the username, name manga, chapter number, and read status.
+        """
+        status = "read" if self.is_read else "unread"
+        return (f"Notification for {self.user.username}: {self.chapter.manga.name_manga} "
+                f"Chapter {self.chapter.chapter_number} ({status})")
+

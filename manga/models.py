@@ -1,5 +1,3 @@
-from __future__ import unicode_literals
-
 from io import BytesIO
 
 from django.core.files import File
@@ -205,44 +203,6 @@ class Manga(models.Model):
         """
         return self.name_manga
 
-    def average_rating(self):
-        """
-        Calculate the average rating for the manga.
-
-        Returns:
-            float or None: Average rating or None if no ratings exist.
-
-        Example:
-            manga.average_rating()
-        """
-        return self.ratings.aggregate(Avg("rating"))["rating__avg"]
-
-    def get_avatar_url(self):
-        """
-        Get the URL of the avatar image.
-
-        Returns:
-            str: URL of the avatar or empty string if not set.
-
-        Example:
-            manga.get_avatar_url()
-        """
-        if self.avatar:
-            return self.avatar.url
-        return ""
-
-    def get_url(self):
-        """
-        Get the URL for the manga detail page.
-
-        Returns:
-            str: URL.
-
-        Example:
-            manga.get_url()
-        """
-        return f"/{self.slug}/"
-
     def save(self, *args, **kwargs):
         """
         Save the manga instance, generate slug if new, and update thumbnail if avatar changed.
@@ -291,7 +251,7 @@ class Manga(models.Model):
                 self.thumbnail.save(thumb_file.name, thumb_file, save=False)
                 super().save(update_fields=["thumbnail"])
         except Exception as e:
-            raise ValueError(f"Error generating thumbnail: {e}")
+            raise ValueError(f"Error generating thumbnail: {e}") from e
 
     def get_thumbnail_url(self):
         """
@@ -304,6 +264,44 @@ class Manga(models.Model):
             manga.get_thumbnail_url()
         """
         return self.thumbnail.url if self.thumbnail else ""
+
+    def average_rating(self):
+        """
+        Calculate the average rating for the manga.
+
+        Returns:
+            float or None: Average rating or None if no ratings exist.
+
+        Example:
+            manga.average_rating()
+        """
+        return self.ratings.aggregate(Avg("rating"))["rating__avg"]
+
+    def get_avatar_url(self):
+        """
+        Get the URL of the avatar image.
+
+        Returns:
+            str: URL of the avatar or empty string if not set.
+
+        Example:
+            manga.get_avatar_url()
+        """
+        if self.avatar:
+            return self.avatar.url
+        return ""
+
+    def get_url(self):
+        """
+        Get the URL for the manga detail page.
+
+        Returns:
+            str: URL.
+
+        Example:
+            manga.get_url()
+        """
+        return f"/{self.slug}/"
 
 
 class Chapter(models.Model):
@@ -348,18 +346,6 @@ class Chapter(models.Model):
         """
         return f"{self.manga.name_manga} - Chapter {self.chapter_number}"
 
-    def data_g(self):
-        """
-        Get the creation date of the chapter in MM/DD/YYYY format.
-
-        Returns:
-            str: Formatted date string.
-
-        Example:
-            chapter.data_g()
-        """
-        return self.created_at.strftime("%m/%d/%Y")
-
     def save(self, *args, **kwargs):
         """
         Save the chapter instance and generate a slug based on manga, volume, and chapter number.
@@ -376,6 +362,18 @@ class Chapter(models.Model):
         """
         self.slug = slugify(f"{self.manga.english_only_field}-{self.volume}-{self.chapter_number}")
         super().save(*args, **kwargs)
+
+    def data_g(self):
+        """
+        Get the creation date of the chapter in MM/DD/YYYY format.
+
+        Returns:
+            str: Formatted date string.
+
+        Example:
+            chapter.data_g()
+        """
+        return self.created_at.strftime("%m/%d/%Y")
 
 
 class Page(models.Model):
@@ -396,19 +394,14 @@ class Page(models.Model):
         constraints = [models.UniqueConstraint(fields=["chapter", "page_number"], name="unique_page_per_chapter")]
         ordering = ["page_number"]
 
-    def get_image(self):
+    def __str__(self):
         """
-        Get the URL of the page image.
+        String representation of the Page instance.
 
         Returns:
-            str: URL of the image or empty string if not set.
-
-        Example:
-            page.get_image()
+            str: A string containing the name manga, chapter number, and page number.
         """
-        if self.image:
-            return self.image.url
-        return ""
+        return f"{self.chapter.manga.name_manga} Chapter {self.chapter.chapter_number} - Page {self.page_number}"
 
     def save(self, *args, **kwargs):
         """
@@ -431,3 +424,20 @@ class Page(models.Model):
             else:
                 self.page_number = 1
         super().save(*args, **kwargs)
+
+    def get_image(self):
+        """
+        Get the URL of the page image.
+
+        Returns:
+            str: URL of the image or empty string if not set.
+
+        Example:
+            page.get_image()
+        """
+        if self.image:
+            return self.image.url
+        return ""
+
+
+

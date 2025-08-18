@@ -32,6 +32,15 @@ class Comment(models.Model):
 
         ordering = ["-created_at"]
 
+    def __str__(self):
+        """
+        Return a string representation of the Comment instance.
+
+        Returns:
+            str: String with username of the comment's author.
+        """
+        return f"Comment by {self.user.username}"
+
     def save(self, *args, **kwargs):
         """
         Save the Comment instance to the database.
@@ -47,14 +56,6 @@ class Comment(models.Model):
             self.user = self.user or get_user_model().objects.get(pk=self.user_id)  # Make sure the user has installed
         super().save(*args, **kwargs)
 
-    def __str__(self):
-        """
-        Return a string representation of the Comment instance.
-
-        Returns:
-            str: String with username of the comment's author.
-        """
-        return f"Comment by {self.user.username}"
 
 
 class MangaRating(models.Model):
@@ -82,6 +83,16 @@ class MangaRating(models.Model):
 
         unique_together = ("user", "manga")
 
+    def __str__(self):
+        """
+        String representation of the MangaRating instance.
+
+        Returns:
+            str: A string containing the username, name manga, and rating.
+        """
+        return f"{self.user.username} rated {self.manga.name_manga} - {self.rating}/5"
+
+
     def save(self, *args, **kwargs):
         """
         Save the MangaRating instance to the database.
@@ -96,3 +107,4 @@ class MangaRating(models.Model):
         if not self.pk:
             self.user = self.user or get_user_model().objects.get(pk=self.user_id)
         super().save(*args, **kwargs)
+
